@@ -5,7 +5,6 @@ import java.io.InputStreamReader;
 
 public class GitUtil {
 
-//    static String projectPath;
     public static long runRollBackGitShell(String projectPath) {
         try {
             long startTime =  System.currentTimeMillis();
@@ -31,7 +30,7 @@ public class GitUtil {
         return -1;
     }
 
-    public static void runDiffGitShell(String projectPath) {
+    public static String runDiffGitShell(String projectPath) {
         Runtime run = Runtime.getRuntime();
         try {
             Process process = run.exec("cmd.exe /c cd " + projectPath + "&& git diff HEAD~1");
@@ -44,11 +43,12 @@ public class GitUtil {
                 sb.append(message + "\n");
             }
             System.out.println(sb);
+            return sb.toString();
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
+        return null;
     }
 
 }

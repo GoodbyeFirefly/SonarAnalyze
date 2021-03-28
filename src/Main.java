@@ -30,11 +30,14 @@ public class Main {
         String projectVersion = "1.0";
         String sources = "./";
         String binaries = "./";
-        HashMap<String, ArrayList<String>>measures = new HashMap<>();
-        ArrayList<String> scanTime = new ArrayList<>();
-        ArrayList<ArrayList<ProjectIssue>> projReports = new ArrayList<>();
+
+
+//        HashMap<String, ArrayList<String>>measures = new HashMap<>();
+//        ArrayList<String> scanTime = new ArrayList<>();
+        ArrayList<ProjectIssue> projReports = new ArrayList<>();
         System.out.println("输入commit数目：");
 //      numOfCommit = input.nextInt();
+
         SonarUtil sonar = new SonarUtil(numOfCommit, projectPath, fileName, projectName, projectVersion, sources, binaries);
 
 
@@ -69,6 +72,9 @@ public class Main {
 //        showMeasures(measures);
 //        showProjInfo(projReports);
 //        runDiffGitShell(projectPath);
+
+        System.out.println(sonar.getProjReport(projectName));
+        System.out.println(GitUtil.runDiffGitShell(projectPath));
     }
 
 

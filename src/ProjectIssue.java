@@ -6,18 +6,20 @@ public class ProjectIssue {
     String severity;
     String component;
     String project;
+    String line;
     String hash;
     String status;
     String message;
     String type;
     JSONObject textRange;
 
-    public ProjectIssue(String key, String rule, String severity, String component, String project, String hash, String status, String message, String type, JSONObject textRange) {
+    public ProjectIssue(String key, String rule, String severity, String component, String project, String line, String hash, String status, String message, String type, JSONObject textRange) {
         this.key = key;
         this.rule = rule;
         this.severity = severity;
         this.component = component;
         this.project = project;
+        this.line = line;
         this.hash = hash;
         this.status = status;
         this.message = message;
@@ -32,6 +34,7 @@ public class ProjectIssue {
                 "\nseverity='" + severity + '\'' +
                 "\ncomponent='" + component + '\'' +
                 "\nproject='" + project + '\'' +
+                "\nline='" + line + '\'' +
                 "\nhash='" + hash + '\'' +
                 "\nstatus='" + status + '\'' +
                 "\nmessage='" + message + '\'' +

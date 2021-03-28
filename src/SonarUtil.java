@@ -502,11 +502,12 @@ public class SonarUtil {
                         jsonObj.getString("severity"),
                         jsonObj.getString("component"),
                         jsonObj.getString("project"),
+                        jsonObj.getString("line"),
                         jsonObj.getString("hash"),
                         jsonObj.getString("status"),
                         jsonObj.getString("message"),
                         jsonObj.getString("type"),
-                        jsonObj.getJSONObject("textRange"));
+                        textRangeObj);
                 projReport.add(pi);
             }
         } catch (Exception e) {
