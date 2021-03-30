@@ -121,7 +121,7 @@ public class SonarUtil {
      * 根据项目名称获取sonarqube扫描结果（bugs、codeSmells、vulnerabilities）
      * @param projectName
      */
-    public HashMap<String, ArrayList<String>> getAllJsonData(String projectName) {
+    public HashMap<String, ArrayList<String>> combineAllSonarMeasures(String projectName) {
         HashMap<String, ArrayList<String>> measures = new HashMap<>();
         if(taskFinished(projectName)) {
             System.out.println("开始接收数据");
@@ -163,7 +163,7 @@ public class SonarUtil {
      * 根据项目名称获取sonarqube扫描结果（bugs、codeSmells、vulnerabilities）
      * @param projectName
      */
-    public HashMap<String, String> getJsonData(String projectName) {
+    public HashMap<String, String> combineSonarMeasures(String projectName) {
         HashMap<String, String> measures = new HashMap<>();
         if(taskFinished(projectName)) {
             System.out.println("开始接收数据");

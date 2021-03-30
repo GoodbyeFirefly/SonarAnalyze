@@ -7,7 +7,7 @@ import java.util.*;
 
 public class Main {
     public static Scanner input = new Scanner(System.in);
-    public static int numOfCommit = 2;
+    public static int numOfCommit = 1;
 
     public static void main(String[] args) {
         // 输入配置信息
@@ -16,10 +16,10 @@ public class Main {
 //        String projectPath = "D://news";// 暂时统一，避免重复输入
 //        String projectPath = "D:\\TestProjects\\spring-boot";// 暂时统一，避免重复输入
 //        String projectPath = "D:\\TestProjects\\interesting-python";// 暂时统一，避免重复输入//        String projectPath = "D:\\TestProjects\\interesting-python";// 暂时统一，避免重复输入
-        String projectPath = "D:\\TestProjects\\untitled";// 暂时统一，避免重复输入
-
-
-        String fileName = "sonar-project.properties";// 配置文件名称
+        String path = "D:\\TestProjects";
+        String projectFileName = "untitled";
+        String projectPath = path + "\\" + projectFileName;// 暂时统一，避免重复输入
+        String ConFileName = "sonar-project.properties";// 配置文件名称
 
         System.out.println("输入项目名称：");
 //        String projectName = input.nextLine();
@@ -38,11 +38,11 @@ public class Main {
         System.out.println("输入commit数目：");
 //      numOfCommit = input.nextInt();
 
-        SonarUtil sonar = new SonarUtil(numOfCommit, projectPath, fileName, projectName, projectVersion, sources, binaries);
+//        SonarUtil sonar = new SonarUtil(numOfCommit, projectPath, fileName, projectName, projectVersion, sources, binaries);
 
 
         // 创建配置文件
-        sonar.createConfFile(projectPath.concat("/"), fileName, projectName, projectVersion, sources, binaries);
+//        sonar.createConfFile(projectPath.concat("/"), fileName, projectName, projectVersion, sources, binaries);
 //
 //        for(int i = 0; i < numOfCommit; i++) {
 //            System.out.println("第" + i + "个版本");
@@ -73,8 +73,12 @@ public class Main {
 //        showProjInfo(projReports);
 //        runDiffGitShell(projectPath);
 
-        System.out.println(sonar.getProjReport(projectName));
-        System.out.println(GitUtil.runDiffGitShell(projectPath));
+//        System.out.println(sonar.getProjReport(projectName));
+//        System.out.println(GitUtil.runDiffGitShell(projectPath));
+
+//        GitUtil.refreshWorkspace(path, projectFileName);
+        GitUtil.refreshWorkspaceByCMD(path, projectFileName);
+//        GitUtil.runRollBackGitShell(path + "\\" + projectFileName + "-workspace" + "\\" + projectFileName, 1);
     }
 
 
