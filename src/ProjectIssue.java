@@ -62,6 +62,10 @@ public class ProjectIssue {
         return project;
     }
 
+    public String getLine() {
+        return line;
+    }
+
     public String getHash() {
         return hash;
     }

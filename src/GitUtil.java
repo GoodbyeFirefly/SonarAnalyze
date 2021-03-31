@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.ArrayList;
 
 public class GitUtil {
 
@@ -31,7 +32,7 @@ public class GitUtil {
         return -1;
     }
 
-    public static String runDiffGitShell(String projectPath) {
+    public static String runDiffGitShell(ArrayList<ProjectIssue> lastProjIssues, ArrayList<ProjectIssue> curProjIssues, String projectPath) {
         Runtime run = Runtime.getRuntime();
         try {
             Process process = run.exec("cmd.exe /c cd " + projectPath + "&& git diff HEAD~1");
@@ -39,10 +40,38 @@ public class GitUtil {
             InputStreamReader reader = new InputStreamReader(in);
             BufferedReader br = new BufferedReader(reader);
             StringBuffer sb = new StringBuffer();
-            String message;
+            String message = null, lastMessage = null;
+            String fileName = null;
+            int index = 0;
+            boolean flag = false;// 标识接下来的内容是否为diff报告中的内容
             while((message = br.readLine()) != null) {
-                sb.append(message + "\n");
+                if(message.length() > 10 && message.substring(0, 10) == "diff --git") {
+                    flag = false;
+                    continue;// 跳出这次循环
+                }
+                if(message.length() > 2 && message.substring(0, 2).equals("@@")) {
+                    // 获取当前diff报告属于哪个文件夹
+                    fileName = lastMessage.substring(6);
+                    String[] split = message.split(" |,");
+                    // 获取当前diff报告开始的行数
+                    index = Integer.valueOf(split[3]);
+                    flag = true;
+
+                    System.out.println("fileName: " + fileName);
+
+                    continue;// 跳出这次循环
+                }
+                if(flag) {
+
+                    System.out.println("Line " + index + ": " + message);
+                    getIssuesInfo(lastProjIssues, curProjIssues, fileName, index);
+                    index++;
+                }
+//                sb.append(message + "\n");
+                // 记录上一行数据，当检测到@@时，用其来判断当前改动的代码属于哪个文件夹
+                lastMessage = message;
             }
+
             System.out.println(sb);
             return sb.toString();
         } catch (IOException e) {
@@ -51,29 +80,6 @@ public class GitUtil {
         }
         run.exit(0);
         return null;
-    }
-
-    //复制文件夹
-    public static void copyFolder(File srcFolder, File desFolder) throws IOException {
-        //遍历原始文件夹里面的所有文件及文件夹
-        File[] files = srcFolder.listFiles();
-        for (File srcFile : files) {
-            //如果是文件夹
-            if (srcFile.isDirectory()){
-                //在新的文件夹内创建一个和srcFile文件夹同名文件夹，然后再递归调用，判断文件夹里面的情况，然后做出相应处理
-                String srcFileName = srcFile.getName();
-                File newFolder = new File(desFolder, srcFileName);
-                if (!newFolder.exists()){
-                    newFolder.mkdir();
-                    copyFolder(srcFile,newFolder);
-                }
-                //如果是文件
-            }else {
-                String srcFileName = srcFile.getName();
-                File desFile = new File(desFolder, srcFileName);
-                copyFile(srcFile,desFile);
-            }
-        }
     }
 
     public static void copyFolderByCMD(String scrFolder, String desFolder) {
@@ -86,26 +92,6 @@ public class GitUtil {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-    }
-
-    //复制文件
-    public static void copyFile (File srcFile, File desFile) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(srcFile),"utf-8"));
-        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(desFile),"utf-8"));
-//        char[] chars = new char[1024];
-//        int len;
-
-        String temp = null;
-        while((temp = br.readLine())!=null){
-            bw.write(temp + "\n");
-            bw.flush();
-        }
-//        while ((len = br.read(chars)) != -1) {
-//            bw.write(chars,0,len);
-//            //bw.flush();
-//        }
-        br.close();
-        bw.close();
     }
 
     public static void deleteFile(File file) {
@@ -128,24 +114,6 @@ public class GitUtil {
         }
         //删除空文件夹  for循环已经把上一层节点的目录清空。
         file.delete();
-    }
-
-    public static void refreshWorkspace(String path, String projectFileName) {
-        try {
-            File f = new File(path + "\\" + projectFileName + "-workspace");
-            deleteFile(f);// 删除该目录下所有文件夹和文件
-            f = new File(path + "\\" + projectFileName + "-workspace");
-            f.mkdir();// 重新创建目录
-            File desFolder = new File(path + "\\" + projectFileName + "-workspace" + "\\" + projectFileName);
-            File srcFolder = new File(path + "\\" + projectFileName);
-            if(desFolder.mkdir()) {
-                copyFolder(srcFolder, desFolder);
-            } else {
-                System.out.println("Error in GItUtil[139]");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public static void refreshWorkspaceByCMD(String path, String projectFileName) {
@@ -181,5 +149,20 @@ public class GitUtil {
         }
     }
 
+    public static String getIssuesInfo(ArrayList<ProjectIssue> lastProjIssues, ArrayList<ProjectIssue> curProjIssues, String fileName, int index) {
+        for(ProjectIssue pi : curProjIssues) {
+            String s = pi.getComponent();
+            String[] split = s.split(":");
+            s = split[1];
+//            System.out.println("fileName: " + fileName);
+//            System.out.println("index: " + index);
+            if(s.equals(fileName) &&
+            pi.getLine() != null &&
+            Integer.valueOf(pi.getLine()) == index) {
+                System.out.println(pi.getMessage());
+            }
+        }
+        return null;
+    }
 
 }

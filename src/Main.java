@@ -33,7 +33,6 @@ public class Main {
         String binaries = "./";
 
 
-//        HashMap<String, ArrayList<String>>measures = new HashMap<>();
 //        ArrayList<String> scanTime = new ArrayList<>();
         ArrayList<ArrayList<ProjectIssue>> projReports = new ArrayList<>();
 //        System.out.println("输入commit数目：");
@@ -68,47 +67,21 @@ public class Main {
 //        }
 //        measures.put("scan_time", scanTime);
 
-        // 从sonarQube获取项目分析数据
-//        getJsonData(projectName, measures);
-//        showMeasures(measures);
-//        showProjInfo(projReports);
-//        runDiffGitShell(projectPath);
-
-//        System.out.println(sonar.getProjReport(projectName));
-//        System.out.println(GitUtil.runDiffGitShell(projectPath));
-
-//        System.out.println(newProjectPath);
-//        GitUtil.runRollBackGitShell(newProjectPath, 2);
-//        sonar.runSonarShell(newProjectPath);
+        GitUtil.refreshWorkspaceByCMD(path, projectFileName);
+        GitUtil.runRollBackGitShell(newProjectPath, 2);
+        sonar.runSonarShell(newProjectPath);
+        ArrayList<ProjectIssue> pi = sonar.getProjReport(projectName);
+        projReports.add(pi);
 
         GitUtil.refreshWorkspaceByCMD(path, projectFileName);
-
-        GitUtil.runRollBackGitShell(newProjectPath, 2);
-//        sonar.runSonarShell(newProjectPath);
-//        ArrayList<ProjectIssue> pi = sonar.getProjReport(projectName);
-//        projReports.add(pi);
-
-//        GitUtil.refreshWorkspaceByCMD(path, projectFileName);
-//        GitUtil.runRollBackGitShell(newProjectPath, 1);
-//        sonar.runSonarShell(newProjectPath);
-//        pi = sonar.getProjReport(projectName);
-//        projReports.add(pi);
-
+        GitUtil.runRollBackGitShell(newProjectPath, 1);
+        sonar.runSonarShell(newProjectPath);
+        pi = sonar.getProjReport(projectName);
+        projReports.add(pi);
+//
 //        sonar.showProjInfo(projReports);
 
-
-//        GitUtil.runRollBackGitShell(path + "\\" + projectFileName + "-workspace" + "\\" + projectFileName, 1);
+        GitUtil.runDiffGitShell(projReports.get(0), projReports.get(1), newProjectPath);
     }
-
-
-
-
-
-
-
-
-
-
-
 }
 
