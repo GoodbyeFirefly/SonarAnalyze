@@ -83,19 +83,21 @@ public class SonarUtil {
             System.out.println("开始执行命令");
             Process proc = Runtime.getRuntime().exec("cmd.exe /c cd " + projectPath + "&& sonar-scanner");
 
-            InputStream is1 = proc.getInputStream();
-            new Thread(() -> {
-                BufferedReader br = new BufferedReader(new InputStreamReader(is1));
-                try{
-                    while(br.readLine() != null) ;
-                }
-                catch(Exception e) {
-                    e.printStackTrace();
-                }
-            }).start();
-            InputStream is2 = proc.getErrorStream();
-            BufferedReader br2 = new BufferedReader(new InputStreamReader(is2));
-            while(br2.readLine() != null){}
+            GitUtil.clearStream(proc.getInputStream());
+            GitUtil.clearStream(proc.getErrorStream());
+//            InputStream is1 = proc.getInputStream();
+//            new Thread(() -> {
+//                BufferedReader br = new BufferedReader(new InputStreamReader(is1));
+//                try{
+//                    while(br.readLine() != null) ;
+//                }
+//                catch(Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }).start();
+//            InputStream is2 = proc.getErrorStream();
+//            BufferedReader br2 = new BufferedReader(new InputStreamReader(is2));
+//            while(br2.readLine() != null){}
 
             int processCode = proc.waitFor();
             if(processCode == 0) {
@@ -107,9 +109,9 @@ public class SonarUtil {
 //                System.out.println("扫描用时" + usedTime + "s");
                 System.out.println("-----------------------------");
             } else {
-                System.out.println("扫描失败");
+                System.out.println("Error in SonarUtil[110]");
             }
-
+//            proc.exitValue();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -123,38 +125,37 @@ public class SonarUtil {
      */
     public HashMap<String, ArrayList<String>> combineAllSonarMeasures(String projectName) {
         HashMap<String, ArrayList<String>> measures = new HashMap<>();
-        if(taskFinished(projectName)) {
-            System.out.println("开始接收数据");
+        waitForTaskFinished(projectName);
 
 //        String paramOfSize = "component=" + projectName + "&metrics=accessors,classes,directories,files,functions,lines,ncloc,comment_lines,comment_lines_density,comment_lines_data,generated_lines,new_lines,generated_ncloc,ncloc_language_distribution,ncloc_data";
-            String paramOfSize = "classes,directories,files,functions,lines,ncloc,comment_lines,comment_lines_density,comment_lines_data,generated_lines,new_lines,generated_ncloc,ncloc_language_distribution,ncloc_data";
-            String paramOfDocumentation = "commented_out_code_lines";
-            String paramOfComplexity = "complexity,cognitive_complexity,class_complexity,file_complexity,complexity_in_classes,complexity_in_functions,file_complexity_distribution,class_complexity_distribution,function_complexity_distribution";
-            String paramOfCoverage = "branch_coverage,conditions_to_cover,it_branch_coverage,it_coverage,it_conditions_to_cover,it_line_coverage,line_coverage,it_lines_to_cover,lines_to_cover,overall_conditions_to_cover,coverage,overall_branch_coverage,new_branch_coverage,new_conditions_to_cover,new_it_branch_coverage,new_it_coverage,new_it_conditions_to_cover,new_it_line_coverage,new_line_coverage,new_it_lines_to_cover,new_lines_to_cover,new_overall_conditions_to_cover,new_coverage,new_overall_branch_coverage,new_overall_coverage,overall_coverage,conditions_by_line,coverage_line_hits_data,covered_conditions_by_line,overall_conditions_by_line,overall_coverage_line_hits_data,overall_covered_conditions_by_line,overall_line_coverage,executable_lines_data,it_conditions_by_line,it_coverage_line_hits_data,it_covered_conditions_by_line,it_uncovered_conditions,it_uncovered_lines";
-            String paramOfDuplications = "duplicated_blocks,duplicated_lines,duplicated_lines_density,new_duplicated_blocks,new_duplicated_lines,new_duplicated_lines_density,duplicated_files,duplications_data";
-            String paramOfIssues = "blocker_violations,critical_violations,info_violations,violations,major_violations,minor_violations,new_blocker_violations,new_critical_violations,new_info_violations,new_violations,new_major_violations,new_minor_violations,open_issues,confirmed_issues,false_positive_issues";
-            String paramOfMaintainability = "code_smells,new_code_smells,new_technical_debt,new_maintainability_rating,effort_to_reach_maintainability_rating_a,sqale_rating";
-            String paramOfReliability = "bugs,new_bugs";
-            String paramOfSecurity = "vulnerabilities,new_vulnerabilities";
-            String paramOfSCM = "last_commit_date";
-            String paramOfManagement = "burned_budget,business_value";
+        String paramOfSize = "classes,directories,files,functions,lines,ncloc,comment_lines,comment_lines_density,comment_lines_data,generated_lines,new_lines,generated_ncloc,ncloc_language_distribution,ncloc_data";
+        String paramOfDocumentation = "commented_out_code_lines";
+        String paramOfComplexity = "complexity,cognitive_complexity,class_complexity,file_complexity,complexity_in_classes,complexity_in_functions,file_complexity_distribution,class_complexity_distribution,function_complexity_distribution";
+        String paramOfCoverage = "branch_coverage,conditions_to_cover,it_branch_coverage,it_coverage,it_conditions_to_cover,it_line_coverage,line_coverage,it_lines_to_cover,lines_to_cover,overall_conditions_to_cover,coverage,overall_branch_coverage,new_branch_coverage,new_conditions_to_cover,new_it_branch_coverage,new_it_coverage,new_it_conditions_to_cover,new_it_line_coverage,new_line_coverage,new_it_lines_to_cover,new_lines_to_cover,new_overall_conditions_to_cover,new_coverage,new_overall_branch_coverage,new_overall_coverage,overall_coverage,conditions_by_line,coverage_line_hits_data,covered_conditions_by_line,overall_conditions_by_line,overall_coverage_line_hits_data,overall_covered_conditions_by_line,overall_line_coverage,executable_lines_data,it_conditions_by_line,it_coverage_line_hits_data,it_covered_conditions_by_line,it_uncovered_conditions,it_uncovered_lines";
+        String paramOfDuplications = "duplicated_blocks,duplicated_lines,duplicated_lines_density,new_duplicated_blocks,new_duplicated_lines,new_duplicated_lines_density,duplicated_files,duplications_data";
+        String paramOfIssues = "blocker_violations,critical_violations,info_violations,violations,major_violations,minor_violations,new_blocker_violations,new_critical_violations,new_info_violations,new_violations,new_major_violations,new_minor_violations,open_issues,confirmed_issues,false_positive_issues";
+        String paramOfMaintainability = "code_smells,new_code_smells,new_technical_debt,new_maintainability_rating,effort_to_reach_maintainability_rating_a,sqale_rating";
+        String paramOfReliability = "bugs,new_bugs";
+        String paramOfSecurity = "vulnerabilities,new_vulnerabilities";
+        String paramOfSCM = "last_commit_date";
+        String paramOfManagement = "burned_budget,business_value";
 
-            getAllSonarMeasures(projectName, paramOfSize, measures);
-            getAllSonarMeasures(projectName, paramOfDocumentation, measures);
-            getAllSonarMeasures(projectName, paramOfComplexity, measures);
-            getAllSonarMeasures(projectName, paramOfCoverage, measures);
-            getAllSonarMeasures(projectName, paramOfDuplications, measures);
-            getAllSonarMeasures(projectName, paramOfIssues, measures);
-            getAllSonarMeasures(projectName, paramOfMaintainability, measures);
-            getAllSonarMeasures(projectName, paramOfReliability, measures);
-            getAllSonarMeasures(projectName, paramOfSecurity, measures);
-            getAllSonarMeasures(projectName, paramOfSCM, measures);
-            getAllSonarMeasures(projectName, paramOfManagement, measures);
+        getAllSonarMeasures(projectName, paramOfSize, measures);
+        getAllSonarMeasures(projectName, paramOfDocumentation, measures);
+        getAllSonarMeasures(projectName, paramOfComplexity, measures);
+        getAllSonarMeasures(projectName, paramOfCoverage, measures);
+        getAllSonarMeasures(projectName, paramOfDuplications, measures);
+        getAllSonarMeasures(projectName, paramOfIssues, measures);
+        getAllSonarMeasures(projectName, paramOfMaintainability, measures);
+        getAllSonarMeasures(projectName, paramOfReliability, measures);
+        getAllSonarMeasures(projectName, paramOfSecurity, measures);
+        getAllSonarMeasures(projectName, paramOfSCM, measures);
+        getAllSonarMeasures(projectName, paramOfManagement, measures);
 
 //            System.out.println(measures);
 //        System.out.println(measures.get("last_commit_date"));
 
-        }
+
         return measures;
 
     }
@@ -165,38 +166,38 @@ public class SonarUtil {
      */
     public HashMap<String, String> combineSonarMeasures(String projectName) {
         HashMap<String, String> measures = new HashMap<>();
-        if(taskFinished(projectName)) {
+        waitForTaskFinished(projectName);
             System.out.println("开始接收数据");
 
 //        String paramOfSize = "component=" + projectName + "&metrics=accessors,classes,directories,files,functions,lines,ncloc,comment_lines,comment_lines_density,comment_lines_data,generated_lines,new_lines,generated_ncloc,ncloc_language_distribution,ncloc_data";
-            String paramOfSize = "classes,directories,files,functions,lines,ncloc,comment_lines,comment_lines_density,comment_lines_data,generated_lines,new_lines,generated_ncloc,ncloc_language_distribution,ncloc_data";
-            String paramOfDocumentation = "commented_out_code_lines";
-            String paramOfComplexity = "complexity,cognitive_complexity,class_complexity,file_complexity,complexity_in_classes,complexity_in_functions,file_complexity_distribution,class_complexity_distribution,function_complexity_distribution";
-            String paramOfCoverage = "branch_coverage,conditions_to_cover,it_branch_coverage,it_coverage,it_conditions_to_cover,it_line_coverage,line_coverage,it_lines_to_cover,lines_to_cover,overall_conditions_to_cover,coverage,overall_branch_coverage,new_branch_coverage,new_conditions_to_cover,new_it_branch_coverage,new_it_coverage,new_it_conditions_to_cover,new_it_line_coverage,new_line_coverage,new_it_lines_to_cover,new_lines_to_cover,new_overall_conditions_to_cover,new_coverage,new_overall_branch_coverage,new_overall_coverage,overall_coverage,conditions_by_line,coverage_line_hits_data,covered_conditions_by_line,overall_conditions_by_line,overall_coverage_line_hits_data,overall_covered_conditions_by_line,overall_line_coverage,executable_lines_data,it_conditions_by_line,it_coverage_line_hits_data,it_covered_conditions_by_line,it_uncovered_conditions,it_uncovered_lines";
-            String paramOfDuplications = "duplicated_blocks,duplicated_lines,duplicated_lines_density,new_duplicated_blocks,new_duplicated_lines,new_duplicated_lines_density,duplicated_files,duplications_data";
-            String paramOfIssues = "blocker_violations,critical_violations,info_violations,violations,major_violations,minor_violations,new_blocker_violations,new_critical_violations,new_info_violations,new_violations,new_major_violations,new_minor_violations,open_issues,confirmed_issues,false_positive_issues";
-            String paramOfMaintainability = "code_smells,new_code_smells,new_technical_debt,new_maintainability_rating,effort_to_reach_maintainability_rating_a,sqale_rating";
-            String paramOfReliability = "bugs,new_bugs";
-            String paramOfSecurity = "vulnerabilities,new_vulnerabilities";
-            String paramOfSCM = "last_commit_date";
-            String paramOfManagement = "burned_budget,business_value";
+        String paramOfSize = "classes,directories,files,functions,lines,ncloc,comment_lines,comment_lines_density,comment_lines_data,generated_lines,new_lines,generated_ncloc,ncloc_language_distribution,ncloc_data";
+        String paramOfDocumentation = "commented_out_code_lines";
+        String paramOfComplexity = "complexity,cognitive_complexity,class_complexity,file_complexity,complexity_in_classes,complexity_in_functions,file_complexity_distribution,class_complexity_distribution,function_complexity_distribution";
+        String paramOfCoverage = "branch_coverage,conditions_to_cover,it_branch_coverage,it_coverage,it_conditions_to_cover,it_line_coverage,line_coverage,it_lines_to_cover,lines_to_cover,overall_conditions_to_cover,coverage,overall_branch_coverage,new_branch_coverage,new_conditions_to_cover,new_it_branch_coverage,new_it_coverage,new_it_conditions_to_cover,new_it_line_coverage,new_line_coverage,new_it_lines_to_cover,new_lines_to_cover,new_overall_conditions_to_cover,new_coverage,new_overall_branch_coverage,new_overall_coverage,overall_coverage,conditions_by_line,coverage_line_hits_data,covered_conditions_by_line,overall_conditions_by_line,overall_coverage_line_hits_data,overall_covered_conditions_by_line,overall_line_coverage,executable_lines_data,it_conditions_by_line,it_coverage_line_hits_data,it_covered_conditions_by_line,it_uncovered_conditions,it_uncovered_lines";
+        String paramOfDuplications = "duplicated_blocks,duplicated_lines,duplicated_lines_density,new_duplicated_blocks,new_duplicated_lines,new_duplicated_lines_density,duplicated_files,duplications_data";
+        String paramOfIssues = "blocker_violations,critical_violations,info_violations,violations,major_violations,minor_violations,new_blocker_violations,new_critical_violations,new_info_violations,new_violations,new_major_violations,new_minor_violations,open_issues,confirmed_issues,false_positive_issues";
+        String paramOfMaintainability = "code_smells,new_code_smells,new_technical_debt,new_maintainability_rating,effort_to_reach_maintainability_rating_a,sqale_rating";
+        String paramOfReliability = "bugs,new_bugs";
+        String paramOfSecurity = "vulnerabilities,new_vulnerabilities";
+        String paramOfSCM = "last_commit_date";
+        String paramOfManagement = "burned_budget,business_value";
 
-            getSonarMeasures(projectName, paramOfSize, measures);
-            getSonarMeasures(projectName, paramOfDocumentation, measures);
-            getSonarMeasures(projectName, paramOfComplexity, measures);
-            getSonarMeasures(projectName, paramOfCoverage, measures);
-            getSonarMeasures(projectName, paramOfDuplications, measures);
-            getSonarMeasures(projectName, paramOfIssues, measures);
-            getSonarMeasures(projectName, paramOfMaintainability, measures);
-            getSonarMeasures(projectName, paramOfReliability, measures);
-            getSonarMeasures(projectName, paramOfSecurity, measures);
-            getSonarMeasures(projectName, paramOfSCM, measures);
-            getSonarMeasures(projectName, paramOfManagement, measures);
+        getSonarMeasures(projectName, paramOfSize, measures);
+        getSonarMeasures(projectName, paramOfDocumentation, measures);
+        getSonarMeasures(projectName, paramOfComplexity, measures);
+        getSonarMeasures(projectName, paramOfCoverage, measures);
+        getSonarMeasures(projectName, paramOfDuplications, measures);
+        getSonarMeasures(projectName, paramOfIssues, measures);
+        getSonarMeasures(projectName, paramOfMaintainability, measures);
+        getSonarMeasures(projectName, paramOfReliability, measures);
+        getSonarMeasures(projectName, paramOfSecurity, measures);
+        getSonarMeasures(projectName, paramOfSCM, measures);
+        getSonarMeasures(projectName, paramOfManagement, measures);
 
 //            System.out.println(measures);
 //        System.out.println(measures.get("last_commit_date"));
 
-        }
+
         return measures;
 
     }
@@ -482,6 +483,7 @@ public class SonarUtil {
     }
 
     public ArrayList<ProjectIssue> getProjReport(String projectName) {
+        waitForTaskFinished(projectName);
         ArrayList<ProjectIssue> projReport = new ArrayList<>();
         try {
             String apiOfIssues = "http://localhost:9000/api/issues/search?componentKeys=";
@@ -524,7 +526,7 @@ public class SonarUtil {
         System.out.println();
         for (int i = 0; i < projReports.size(); i++) {
 
-            System.out.println("version: " + i);
+            System.out.println("version: " + (i + 1));
             ArrayList<ProjectIssue> projInfo = projReports.get(i);
 
 //            Collection jsonObj = projInfo.values();
@@ -538,11 +540,11 @@ public class SonarUtil {
         }
     }
 
-    public boolean taskFinished(String projectName) {
+    public boolean waitForTaskFinished(String projectName) {
         int numOfTasksInQueue = getTasksNumInQueue(projectName);
         while (numOfTasksInQueue != 0) {
             try {
-                Thread.currentThread().sleep(5000);// 暂停一段时间再发送请求
+                Thread.currentThread().sleep(2000);// 暂停一段时间再发送请求
             } catch (Exception e) {
                 e.printStackTrace();
             }

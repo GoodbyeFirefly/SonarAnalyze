@@ -9,8 +9,10 @@ public class GitUtil {
             System.out.println("开始执行命令:git reset --hard HEAD~" + num);// 注意这里必须是HEAD~1而不是HEAD^
             String comm = "cmd.exe /c cd " + projectPath + "&& git reset --hard HEAD~" + num;
             Process proc = Runtime.getRuntime().exec(comm);
-
+            clearStream(proc.getInputStream());
+            clearStream(proc.getErrorStream());
             int processCode = proc.waitFor();
+            System.out.println("processCode: " + processCode);
             if(processCode == 0) {
                 System.out.println("命令执行完成");
                 endTime =  System.currentTimeMillis();
@@ -20,11 +22,12 @@ public class GitUtil {
                 System.out.println("-----------------------------");
                 return usedTime;
             } else {
-                System.out.println("执行失败");
+                System.out.println("Error in GitUtil[23]");
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return -1;
     }
 
@@ -46,6 +49,7 @@ public class GitUtil {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+        run.exit(0);
         return null;
     }
 
@@ -75,9 +79,10 @@ public class GitUtil {
     public static void copyFolderByCMD(String scrFolder, String desFolder) {
         Runtime run = Runtime.getRuntime();
         try {
-            Process process = run.exec("cmd.exe /c " + "xcopy " + scrFolder + " " + desFolder + " /s /f /h");
-
-        } catch (IOException e) {
+            Process proc = run.exec("cmd.exe /c " + "xcopy " + scrFolder + " " + desFolder + " /s /f /h");
+            clearStream(proc.getInputStream());
+            clearStream(proc.getErrorStream());
+        } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
@@ -136,7 +141,7 @@ public class GitUtil {
             if(desFolder.mkdir()) {
                 copyFolder(srcFolder, desFolder);
             } else {
-                System.out.println("Error");
+                System.out.println("Error in GItUtil[139]");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -159,9 +164,22 @@ public class GitUtil {
             } else {
                 System.out.println("Error");
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+    public static void clearStream(InputStream stream) {
+        String line = null;
+
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(stream));) {
+            while ((line = in.readLine()) != null) {
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 }

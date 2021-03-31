@@ -19,6 +19,7 @@ public class Main {
         String path = "D:\\TestProjects";
         String projectFileName = "untitled";
         String projectPath = path + "\\" + projectFileName;// 暂时统一，避免重复输入
+        String newProjectPath = path + "\\" + projectFileName + "-workspace" + "\\" + projectFileName;
         String ConFileName = "sonar-project.properties";// 配置文件名称
 
         System.out.println("输入项目名称：");
@@ -34,11 +35,11 @@ public class Main {
 
 //        HashMap<String, ArrayList<String>>measures = new HashMap<>();
 //        ArrayList<String> scanTime = new ArrayList<>();
-        ArrayList<ProjectIssue> projReports = new ArrayList<>();
-        System.out.println("输入commit数目：");
+        ArrayList<ArrayList<ProjectIssue>> projReports = new ArrayList<>();
+//        System.out.println("输入commit数目：");
 //      numOfCommit = input.nextInt();
 
-//        SonarUtil sonar = new SonarUtil(numOfCommit, projectPath, fileName, projectName, projectVersion, sources, binaries);
+        SonarUtil sonar = new SonarUtil(numOfCommit, projectPath, projectFileName, projectName, projectVersion, sources, binaries);
 
 
         // 创建配置文件
@@ -76,8 +77,26 @@ public class Main {
 //        System.out.println(sonar.getProjReport(projectName));
 //        System.out.println(GitUtil.runDiffGitShell(projectPath));
 
-//        GitUtil.refreshWorkspace(path, projectFileName);
+//        System.out.println(newProjectPath);
+//        GitUtil.runRollBackGitShell(newProjectPath, 2);
+//        sonar.runSonarShell(newProjectPath);
+
         GitUtil.refreshWorkspaceByCMD(path, projectFileName);
+
+        GitUtil.runRollBackGitShell(newProjectPath, 2);
+//        sonar.runSonarShell(newProjectPath);
+//        ArrayList<ProjectIssue> pi = sonar.getProjReport(projectName);
+//        projReports.add(pi);
+
+//        GitUtil.refreshWorkspaceByCMD(path, projectFileName);
+//        GitUtil.runRollBackGitShell(newProjectPath, 1);
+//        sonar.runSonarShell(newProjectPath);
+//        pi = sonar.getProjReport(projectName);
+//        projReports.add(pi);
+
+//        sonar.showProjInfo(projReports);
+
+
 //        GitUtil.runRollBackGitShell(path + "\\" + projectFileName + "-workspace" + "\\" + projectFileName, 1);
     }
 
