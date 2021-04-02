@@ -498,11 +498,14 @@ public class SonarUtil {
             JSONArray issuesAry = jsonObjectOfMeasures.getJSONArray("issues"); // 数组形式
             for(int i = 0; i < issuesAry.size(); i++) {
                 JSONObject jsonObj = issuesAry.getJSONObject(i);
+                String component = jsonObj.getString("component");
+                String[] split = component.split(":");
+                component = split[1];
                 JSONObject textRangeObj = jsonObj.getJSONObject("textRange");
                 ProjectIssue pi = new ProjectIssue(jsonObj.getString("key"),
                         jsonObj.getString("rule"),
                         jsonObj.getString("severity"),
-                        jsonObj.getString("component"),
+                        component,
                         jsonObj.getString("project"),
                         jsonObj.getString("line"),
                         jsonObj.getString("hash"),

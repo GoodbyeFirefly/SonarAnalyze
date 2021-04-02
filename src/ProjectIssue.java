@@ -85,4 +85,6 @@ public class ProjectIssue {
     public JSONObject getTextRange() {
         return textRange;
     }
+
+
 }

@@ -152,14 +152,33 @@ public class GitUtil {
     public static String getIssuesInfo(ArrayList<ProjectIssue> lastProjIssues, ArrayList<ProjectIssue> curProjIssues, String fileName, int index) {
         for(ProjectIssue pi : curProjIssues) {
             String s = pi.getComponent();
-            String[] split = s.split(":");
-            s = split[1];
 //            System.out.println("fileName: " + fileName);
 //            System.out.println("index: " + index);
-            if(s.equals(fileName) &&
-            pi.getLine() != null &&
-            Integer.valueOf(pi.getLine()) == index) {
-                System.out.println(pi.getMessage());
+            if(s.equals(fileName) && pi.getLine() != null && Integer.valueOf(pi.getLine()) == index) {
+                boolean findFlag = false;
+                for(ProjectIssue tem : lastProjIssues) {
+                    if (tem.getComponent().equals(pi.getComponent()) &&
+                    tem.getKey().equals(pi.getKey()) &&
+                    tem.getHash().equals(pi.getHash())) {
+                        // 找到相同的缺陷
+                        findFlag = true;
+
+                        if(tem.getStatus().equals("OPEN") && pi.getStatus().equals("OPEN")){
+                            System.out.println("延续的缺陷：");
+                            System.out.println(pi.getMessage());
+                        } else if(tem.getStatus().equals("CLOSED") && pi.getStatus().equals("CLOSED")) {
+
+                        } else if(tem.getStatus().equals("OPEN") && pi.getStatus().equals("CLOSED")) {
+                            System.out.println("修复的缺陷：");
+                            System.out.println(pi.getMessage());
+                        }
+                    }
+                }
+                if(findFlag == false) {
+                    System.out.println("新增的缺陷：");
+                    System.out.println(pi.getMessage());
+                }
+
             }
         }
         return null;
