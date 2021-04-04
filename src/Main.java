@@ -18,6 +18,7 @@ public class Main {
 //        String projectPath = "D:\\TestProjects\\interesting-python";// 暂时统一，避免重复输入//        String projectPath = "D:\\TestProjects\\interesting-python";// 暂时统一，避免重复输入
         String path = "D:\\TestProjects";
         String projectFileName = "untitled";
+//        String projectFileName = "spring-boot";
         String projectPath = path + "\\" + projectFileName;// 暂时统一，避免重复输入
         String newProjectPath = path + "\\" + projectFileName + "-workspace" + "\\" + projectFileName;
         String ConFileName = "sonar-project.properties";// 配置文件名称
@@ -68,13 +69,13 @@ public class Main {
 //        measures.put("scan_time", scanTime);
 
         GitUtil.refreshWorkspaceByCMD(path, projectFileName);
-        GitUtil.runRollBackGitShell(newProjectPath, 2);
+        GitUtil.runRollBackGitShell(newProjectPath, 1);
         sonar.runSonarShell(newProjectPath);
         ArrayList<ProjectIssue> pi = sonar.getProjReport(projectName);
         projReports.add(pi);
 
         GitUtil.refreshWorkspaceByCMD(path, projectFileName);
-        GitUtil.runRollBackGitShell(newProjectPath, 1);
+        GitUtil.runRollBackGitShell(newProjectPath, 0);
         sonar.runSonarShell(newProjectPath);
         pi = sonar.getProjReport(projectName);
         projReports.add(pi);

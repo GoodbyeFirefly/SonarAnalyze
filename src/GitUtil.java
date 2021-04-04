@@ -4,6 +4,9 @@ import java.util.ArrayList;
 public class GitUtil {
 
     public static long runRollBackGitShell(String projectPath, int num) {
+        if(num == 0) {
+            return 0;
+        }
         try {
             long startTime =  System.currentTimeMillis();
             long endTime, usedTime;
@@ -40,36 +43,49 @@ public class GitUtil {
             InputStreamReader reader = new InputStreamReader(in);
             BufferedReader br = new BufferedReader(reader);
             StringBuffer sb = new StringBuffer();
-            String message = null, lastMessage = null;
+            String message = null;
             String fileName = null;
-            int index = 0;
+            int oldLineIndex = 0, newLineIndex = 0;
             boolean flag = false;// 标识接下来的内容是否为diff报告中的内容
             while((message = br.readLine()) != null) {
-                if(message.length() > 10 && message.substring(0, 10) == "diff --git") {
+                if(message.length() > 10 && message.substring(0, 10).equals("diff --git")) {
                     flag = false;
+                    System.out.println("message: " + message);
+                    String[] split = message.split(" ");
+                    System.out.println(split);
+                    fileName = split[2].substring(2);
+                    System.out.println("fileName: " + fileName);
                     continue;// 跳出这次循环
                 }
                 if(message.length() > 2 && message.substring(0, 2).equals("@@")) {
                     // 获取当前diff报告属于哪个文件夹
-                    fileName = lastMessage.substring(6);
+//                    fileName = lastMessage.substring(6);
                     String[] split = message.split(" |,");
                     // 获取当前diff报告开始的行数
-                    index = Integer.valueOf(split[3]);
+                    oldLineIndex = 0 - Integer.valueOf(split[1]);
+                    newLineIndex = Integer.valueOf(split[3]);
                     flag = true;
 
-                    System.out.println("fileName: " + fileName);
+
 
                     continue;// 跳出这次循环
                 }
                 if(flag) {
 
-                    System.out.println("Line " + index + ": " + message);
-                    getIssuesInfo(lastProjIssues, curProjIssues, fileName, index);
-                    index++;
+                    System.out.println(oldLineIndex + " " + newLineIndex + ": " + message);
+
+                    if(message.substring(0, 1).equals("+")) {
+                        getIssuesInfo(lastProjIssues, curProjIssues, fileName, newLineIndex);
+                        newLineIndex++;
+                    } else if(message.substring(0, 1).equals("-")) {
+                        oldLineIndex++;
+                    } else {
+                        newLineIndex++;
+                        oldLineIndex++;
+                    }
                 }
 //                sb.append(message + "\n");
-                // 记录上一行数据，当检测到@@时，用其来判断当前改动的代码属于哪个文件夹
-                lastMessage = message;
+
             }
 
             System.out.println(sb);
@@ -164,19 +180,25 @@ public class GitUtil {
                         findFlag = true;
 
                         if(tem.getStatus().equals("OPEN") && pi.getStatus().equals("OPEN")){
-                            System.out.println("延续的缺陷：");
-                            System.out.println(pi.getMessage());
+                            System.out.println("***************************************");
+                            System.out.println("* 延续的缺陷：");
+                            System.out.println("* " + pi.getMessage());
+                            System.out.println("***************************************");
                         } else if(tem.getStatus().equals("CLOSED") && pi.getStatus().equals("CLOSED")) {
 
                         } else if(tem.getStatus().equals("OPEN") && pi.getStatus().equals("CLOSED")) {
-                            System.out.println("修复的缺陷：");
-                            System.out.println(pi.getMessage());
+                            System.out.println("***************************************");
+                            System.out.println("* 修复的缺陷：");
+                            System.out.println("* " + pi.getMessage());
+                            System.out.println("***************************************");
                         }
                     }
                 }
                 if(findFlag == false) {
-                    System.out.println("新增的缺陷：");
-                    System.out.println(pi.getMessage());
+                    System.out.println("***************************************");
+                    System.out.println("* 新增的缺陷：");
+                    System.out.println("* " + pi.getMessage());
+                    System.out.println("***************************************");
                 }
 
             }

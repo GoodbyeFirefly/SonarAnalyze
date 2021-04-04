@@ -501,13 +501,22 @@ public class SonarUtil {
                 String component = jsonObj.getString("component");
                 String[] split = component.split(":");
                 component = split[1];
+
                 JSONObject textRangeObj = jsonObj.getJSONObject("textRange");
+                if(textRangeObj == null) {
+                    continue;// 若不存在属性：行数，则跳过该缺陷
+//                    System.out.println("******************");
+//                    System.out.println(jsonObj);
+//                    System.out.println("******************");
+                }
+                String line = textRangeObj.getString("endLine");// 记录最后一行
+
                 ProjectIssue pi = new ProjectIssue(jsonObj.getString("key"),
                         jsonObj.getString("rule"),
                         jsonObj.getString("severity"),
                         component,
                         jsonObj.getString("project"),
-                        jsonObj.getString("line"),
+                        line,
                         jsonObj.getString("hash"),
                         jsonObj.getString("status"),
                         jsonObj.getString("message"),
