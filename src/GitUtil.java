@@ -16,7 +16,7 @@ public class GitUtil {
             clearStream(proc.getInputStream());
             clearStream(proc.getErrorStream());
             int processCode = proc.waitFor();
-            System.out.println("processCode: " + processCode);
+//            System.out.println("processCode: " + processCode);
             if(processCode == 0) {
                 System.out.println("命令执行完成");
                 endTime =  System.currentTimeMillis();
@@ -50,11 +50,10 @@ public class GitUtil {
             while((message = br.readLine()) != null) {
                 if(message.length() > 10 && message.substring(0, 10).equals("diff --git")) {
                     flag = false;
-                    System.out.println("message: " + message);
+//                    System.out.println("message: " + message);
                     String[] split = message.split(" ");
-                    System.out.println(split);
                     fileName = split[2].substring(2);
-                    System.out.println("fileName: " + fileName);
+                    System.out.println("\nfileName: " + fileName);
                     continue;// 跳出这次循环
                 }
                 if(message.length() > 2 && message.substring(0, 2).equals("@@")) {
@@ -75,7 +74,7 @@ public class GitUtil {
                     System.out.println(oldLineIndex + " " + newLineIndex + ": " + message);
 
                     if(message.substring(0, 1).equals("+")) {
-                        getIssuesInfo(lastProjIssues, curProjIssues, fileName, newLineIndex);
+                        getCompareIssuesInfo(lastProjIssues, curProjIssues, fileName, newLineIndex);
                         newLineIndex++;
                     } else if(message.substring(0, 1).equals("-")) {
                         oldLineIndex++;
@@ -134,10 +133,10 @@ public class GitUtil {
 
     public static void refreshWorkspaceByCMD(String path, String projectFileName) {
         try {
-            File f = new File(path + "\\" + projectFileName + "-workspace");
+            File f = new File(path + "\\" + projectFileName + "-workspace" + "\\" + projectFileName);
             deleteFile(f);// 删除该目录下所有文件夹和文件
             f = new File(path + "\\" + projectFileName + "-workspace");
-            // 在项目所在目录下创建"项目名-workspace"文件夹
+//             在项目所在目录下创建"项目名-workspace"文件夹
             f.mkdir();
             f = new File(path + "\\" + projectFileName + "-workspace" + "\\" + projectFileName);
             // 在"项目名-workspace"文件夹中创建与项目同名的文件夹
@@ -148,6 +147,12 @@ public class GitUtil {
             } else {
                 System.out.println("Error");
             }
+
+            // 创建projectInfo文件夹，用于存放不同commit的扫描信息
+            f = new File(path.concat("\\").concat(projectFileName).concat("-workspace").concat("\\").concat("ProjectInfo"));
+            if(f.exists()) {}
+            else f.mkdir();
+
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -165,7 +170,15 @@ public class GitUtil {
         }
     }
 
-    public static String getIssuesInfo(ArrayList<ProjectIssue> lastProjIssues, ArrayList<ProjectIssue> curProjIssues, String fileName, int index) {
+    /**
+     * 根据文件名和对应行数，查找新版本中对应的缺陷信息，进而对比旧版本中缺陷信息，查看缺陷的状况（新增、修复、重现、延续）
+     * @param lastProjIssues
+     * @param curProjIssues
+     * @param fileName
+     * @param index
+     * @return
+     */
+    public static String getCompareIssuesInfo(ArrayList<ProjectIssue> lastProjIssues, ArrayList<ProjectIssue> curProjIssues, String fileName, int index) {
         for(ProjectIssue pi : curProjIssues) {
             String s = pi.getComponent();
 //            System.out.println("fileName: " + fileName);
@@ -203,6 +216,111 @@ public class GitUtil {
 
             }
         }
+        return null;
+    }
+
+    /**
+     * 对比两次扫描的全部缺陷信息，找出有变化的缺陷信息
+     * @param lastProjIssues
+     * @param curProjIssues
+     * @return
+     */
+    public static String getAllCompareIssuesInfo(ArrayList<ProjectIssue> lastProjIssues, ArrayList<ProjectIssue> curProjIssues) {
+        int numOfBug = 0;
+        int numOfVul = 0;
+        for(ProjectIssue pi : curProjIssues) {
+            boolean findFlag = false;
+            for(ProjectIssue tem : lastProjIssues) {
+                if (tem.getComponent().equals(pi.getComponent()) &&
+                        tem.getKey().equals(pi.getKey()) &&
+                        tem.getHash().equals(pi.getHash()) &&
+                        tem.getMessage().equals(pi.getMessage())) {
+                    // 找到相同的缺陷
+                    findFlag = true;
+
+                    if(tem.getStatus().equals("OPEN") && pi.getStatus().equals("OPEN")){
+//                        System.out.println("***************************************");
+//                        System.out.println("* 延续的缺陷：");
+//                        System.out.println("* " + pi.getType());
+//                        System.out.println("* " + pi.getComponent());
+//                        System.out.println("* " + pi.getLine());
+//                        System.out.println("* " + pi.getMessage());
+//                        System.out.println("***************************************");
+                    } else if(tem.getStatus().equals("CLOSED") && pi.getStatus().equals("CLOSED")) {
+
+                    } else if(tem.getStatus().equals("OPEN") && pi.getStatus().equals("CLOSED")) {
+                        System.out.println("***************************************");
+                        System.out.println("* 修复的缺陷：");
+                        System.out.println("* " + pi.getType());
+                        if(pi.getType().equals("BUG")) {
+                            numOfBug++;
+                        }else {
+                            numOfVul++;
+                        }
+                        System.out.println("* " + pi.getComponent());
+                        System.out.println("* " + pi.getLine());
+                        System.out.println("* " + pi.getMessage());
+                        System.out.println("***************************************");
+                    } else {
+                        System.out.println("***************************************");
+                        System.out.println("* 重现的缺陷：");
+                        System.out.println("* " + pi.getType());
+                        if(pi.getType().equals("BUG")) {
+                            numOfBug++;
+                        }else {
+                            numOfVul++;
+                        }
+                        System.out.println("* " + pi.getComponent());
+                        System.out.println("* " + pi.getLine());
+                        System.out.println("* " + pi.getMessage());
+                        System.out.println("***************************************");
+                    }
+                }
+            }
+            if(findFlag == false) {
+                System.out.println("***************************************");
+                System.out.println("* 新增的缺陷：");
+                System.out.println("* " + pi.getType());
+                if(pi.getType().equals("BUG")) {
+                    numOfBug++;
+                }else {
+                    numOfVul++;
+                }
+                System.out.println("* " + pi.getComponent());
+                System.out.println("* " + pi.getLine());
+                System.out.println("* " + pi.getMessage());
+                System.out.println("***************************************");
+            }
+        }
+
+        for(ProjectIssue pi : lastProjIssues) {
+            boolean findFlag = false;
+            for(ProjectIssue tem : curProjIssues) {
+                if (tem.getComponent().equals(pi.getComponent()) &&
+                        tem.getKey().equals(pi.getKey()) &&
+                        tem.getHash().equals(pi.getHash()) &&
+                        tem.getMessage().equals(pi.getMessage())) {
+                    // 找到相同的缺陷
+                    findFlag = true;
+                }
+            }
+            if(findFlag == false) {
+                System.out.println("***************************************");
+                System.out.println("* 消失的缺陷：");
+                System.out.println("* " + pi.getType());
+                if(pi.getType().equals("BUG")) {
+                    numOfBug++;
+                }else {
+                    numOfVul++;
+                }
+                System.out.println("* " + pi.getComponent());
+                System.out.println("* " + pi.getLine());
+                System.out.println("* " + pi.getMessage());
+                System.out.println("***************************************");
+            }
+        }
+        System.out.println("numOfBug: " + numOfBug);
+        System.out.println("numOfVul: " + numOfVul);
         return null;
     }
 

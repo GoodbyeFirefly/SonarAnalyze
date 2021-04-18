@@ -1,6 +1,8 @@
 import com.alibaba.fastjson.JSONObject;
 
-public class ProjectIssue {
+import java.io.Serializable;
+
+public class ProjectIssue implements Serializable {
     String key;
     String rule;
     String severity;

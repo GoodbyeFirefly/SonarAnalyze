@@ -10,17 +10,27 @@ import java.util.HashMap;
 
 public class SonarUtil {
     int numOfCommit;
-    String projectPath;
-    String fileName;
+    String path;
+    String projectFileName;
     String projectName;
     String projectVersion = "1.0";
     String sources = "./";
     String binaries = "./";
 
-    public SonarUtil(int numOfCommit, String projectPath, String fileName, String projectName, String projectVersion, String sources, String binaries) {
+    /**
+     * 构造方法
+     * @param numOfCommit
+     * @param path
+     * @param projectFileName
+     * @param projectName
+     * @param projectVersion
+     * @param sources
+     * @param binaries
+     */
+    public SonarUtil(int numOfCommit, String path, String projectFileName, String projectName, String projectVersion, String sources, String binaries) {
         this.numOfCommit = numOfCommit;
-        this.projectPath = projectPath;
-        this.fileName = fileName;
+        this.path = path;
+        this.projectFileName = projectFileName;
         this.projectName = projectName;
         this.projectVersion = projectVersion;
         this.sources = sources;
@@ -28,19 +38,14 @@ public class SonarUtil {
     }
 
     /**
-     * 创建配置文件
-     * @param projectPath
-     * @param fileName
-     * @param projectName
-     * @param projectVersion
-     * @param sources
-     * @param binaries
+     * 在原项目目录下创建配置文件
      */
-    public void createConfFile(String projectPath, String fileName,String projectName,
-                                  String projectVersion, String sources, String binaries) {
-
+    public void createConfFile() {
+        String projectPath = path.concat("\\").concat(projectFileName);
+        String projectPathTem = projectPath.concat("/");
+        String projectConFileName = "sonar-project.properties";
         // 创建配置文件
-        File file = new File(projectPath, fileName);
+        File file = new File(projectPathTem, projectConFileName);
         if(file.exists()) {
             System.out.println("配置文件已存在，开始更新配置");
         } else {
@@ -55,7 +60,7 @@ public class SonarUtil {
         // 向文件中添加配置信息
         FileWriter fw;
         try {
-            fw = new FileWriter(projectPath + fileName);
+            fw = new FileWriter(projectPath.concat("\\").concat(projectConFileName));
             BufferedWriter bw = new BufferedWriter(fw);
             bw.write("sonar.projectKey=" + projectName + "\n");
             bw.write("sonar.projectName=" + projectName + "\n");
@@ -74,30 +79,28 @@ public class SonarUtil {
     /**
      * 打开命令行，切换到对应目录，执行sonar-scanner指令
      * @param projectPath
+     * @return 执行sonar-scanner指令过程所需时间的字符串形式
      */
     public String runSonarShell (String projectPath) {
         long usedTime = 0;
         try {
-//            Process proc = Runtime.getRuntime().exec("cmd.exe /c copy D:\\tmp\\my.txt D:\\tmp\\my_by_only_cmd.txt");
             long startTime =  System.currentTimeMillis();
-            System.out.println("开始执行命令");
+            System.out.println("开始执行命令: sonar-scanner");
             Process proc = Runtime.getRuntime().exec("cmd.exe /c cd " + projectPath + "&& sonar-scanner");
+
+            InputStream in =proc.getInputStream();
+//            InputStream in_ =proc.getErrorStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(in));
+//            BufferedReader br_ = new BufferedReader(new InputStreamReader(in_));
+            StringBuffer sb = new StringBuffer();
+            String message = null;
+//            String message_ = null;
+            while((message = br.readLine()) != null) {
+                System.out.println(message);
+            }
 
             GitUtil.clearStream(proc.getInputStream());
             GitUtil.clearStream(proc.getErrorStream());
-//            InputStream is1 = proc.getInputStream();
-//            new Thread(() -> {
-//                BufferedReader br = new BufferedReader(new InputStreamReader(is1));
-//                try{
-//                    while(br.readLine() != null) ;
-//                }
-//                catch(Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }).start();
-//            InputStream is2 = proc.getErrorStream();
-//            BufferedReader br2 = new BufferedReader(new InputStreamReader(is2));
-//            while(br2.readLine() != null){}
 
             int processCode = proc.waitFor();
             if(processCode == 0) {
@@ -105,27 +108,24 @@ public class SonarUtil {
                 long endTime =  System.currentTimeMillis();
                 // 获取扫描时间
                 usedTime = (endTime - startTime) ;
-
 //                System.out.println("扫描用时" + usedTime + "s");
                 System.out.println("-----------------------------");
             } else {
-                System.out.println("Error in SonarUtil[110]");
+                System.out.println("Error in SonarUtil[113]");
             }
-//            proc.exitValue();
         } catch (Exception e) {
             e.printStackTrace();
         }
         return (usedTime) + "ms";
-
     }
 
     /**
-     * 根据项目名称获取sonarqube扫描结果（bugs、codeSmells、vulnerabilities）
+     * 根据项目名称一次性整合sonarqube中多个版本扫描结果（bugs、codeSmells、vulnerabilities）
      * @param projectName
      */
     public HashMap<String, ArrayList<String>> combineAllSonarMeasures(String projectName) {
         HashMap<String, ArrayList<String>> measures = new HashMap<>();
-        waitForTaskFinished(projectName);
+        waitForTaskFinished();
 
 //        String paramOfSize = "component=" + projectName + "&metrics=accessors,classes,directories,files,functions,lines,ncloc,comment_lines,comment_lines_density,comment_lines_data,generated_lines,new_lines,generated_ncloc,ncloc_language_distribution,ncloc_data";
         String paramOfSize = "classes,directories,files,functions,lines,ncloc,comment_lines,comment_lines_density,comment_lines_data,generated_lines,new_lines,generated_ncloc,ncloc_language_distribution,ncloc_data";
@@ -140,17 +140,17 @@ public class SonarUtil {
         String paramOfSCM = "last_commit_date";
         String paramOfManagement = "burned_budget,business_value";
 
-        getAllSonarMeasures(projectName, paramOfSize, measures);
-        getAllSonarMeasures(projectName, paramOfDocumentation, measures);
-        getAllSonarMeasures(projectName, paramOfComplexity, measures);
-        getAllSonarMeasures(projectName, paramOfCoverage, measures);
-        getAllSonarMeasures(projectName, paramOfDuplications, measures);
-        getAllSonarMeasures(projectName, paramOfIssues, measures);
-        getAllSonarMeasures(projectName, paramOfMaintainability, measures);
-        getAllSonarMeasures(projectName, paramOfReliability, measures);
-        getAllSonarMeasures(projectName, paramOfSecurity, measures);
-        getAllSonarMeasures(projectName, paramOfSCM, measures);
-        getAllSonarMeasures(projectName, paramOfManagement, measures);
+        getAllSonarMeasuresFromWeb(paramOfSize, measures);
+        getAllSonarMeasuresFromWeb(paramOfDocumentation, measures);
+        getAllSonarMeasuresFromWeb(paramOfComplexity, measures);
+        getAllSonarMeasuresFromWeb(paramOfCoverage, measures);
+        getAllSonarMeasuresFromWeb(paramOfDuplications, measures);
+        getAllSonarMeasuresFromWeb(paramOfIssues, measures);
+        getAllSonarMeasuresFromWeb(paramOfMaintainability, measures);
+        getAllSonarMeasuresFromWeb(paramOfReliability, measures);
+        getAllSonarMeasuresFromWeb(paramOfSecurity, measures);
+        getAllSonarMeasuresFromWeb(paramOfSCM, measures);
+        getAllSonarMeasuresFromWeb(paramOfManagement, measures);
 
 //            System.out.println(measures);
 //        System.out.println(measures.get("last_commit_date"));
@@ -161,13 +161,12 @@ public class SonarUtil {
     }
 
     /**
-     * 根据项目名称获取sonarqube扫描结果（bugs、codeSmells、vulnerabilities）
-     * @param projectName
+     * 根据项目名称整合sonarqube扫描结果（bugs、codeSmells、vulnerabilities）
      */
-    public HashMap<String, String> combineSonarMeasures(String projectName) {
+    public HashMap<String, String> combineSonarMeasures() {
         HashMap<String, String> measures = new HashMap<>();
-        waitForTaskFinished(projectName);
-            System.out.println("开始接收数据");
+        waitForTaskFinished();
+        System.out.println("开始接收数据");
 
 //        String paramOfSize = "component=" + projectName + "&metrics=accessors,classes,directories,files,functions,lines,ncloc,comment_lines,comment_lines_density,comment_lines_data,generated_lines,new_lines,generated_ncloc,ncloc_language_distribution,ncloc_data";
         String paramOfSize = "classes,directories,files,functions,lines,ncloc,comment_lines,comment_lines_density,comment_lines_data,generated_lines,new_lines,generated_ncloc,ncloc_language_distribution,ncloc_data";
@@ -182,21 +181,20 @@ public class SonarUtil {
         String paramOfSCM = "last_commit_date";
         String paramOfManagement = "burned_budget,business_value";
 
-        getSonarMeasures(projectName, paramOfSize, measures);
-        getSonarMeasures(projectName, paramOfDocumentation, measures);
-        getSonarMeasures(projectName, paramOfComplexity, measures);
-        getSonarMeasures(projectName, paramOfCoverage, measures);
-        getSonarMeasures(projectName, paramOfDuplications, measures);
-        getSonarMeasures(projectName, paramOfIssues, measures);
-        getSonarMeasures(projectName, paramOfMaintainability, measures);
-        getSonarMeasures(projectName, paramOfReliability, measures);
-        getSonarMeasures(projectName, paramOfSecurity, measures);
-        getSonarMeasures(projectName, paramOfSCM, measures);
-        getSonarMeasures(projectName, paramOfManagement, measures);
+        getSonarMeasuresFromWeb(paramOfSize, measures);
+        getSonarMeasuresFromWeb(paramOfDocumentation, measures);
+        getSonarMeasuresFromWeb(paramOfComplexity, measures);
+        getSonarMeasuresFromWeb(paramOfCoverage, measures);
+        getSonarMeasuresFromWeb(paramOfDuplications, measures);
+        getSonarMeasuresFromWeb(paramOfIssues, measures);
+        getSonarMeasuresFromWeb(paramOfMaintainability, measures);
+        getSonarMeasuresFromWeb(paramOfReliability, measures);
+        getSonarMeasuresFromWeb(paramOfSecurity, measures);
+        getSonarMeasuresFromWeb(paramOfSCM, measures);
+        getSonarMeasuresFromWeb(paramOfManagement, measures);
 
 //            System.out.println(measures);
 //        System.out.println(measures.get("last_commit_date"));
-
 
         return measures;
 
@@ -216,12 +214,12 @@ public class SonarUtil {
         BufferedReader br = null;
         StringBuilder sb = new StringBuilder();
         try {
-//            URL url = new URL(api);
-            String urlStr = api.concat(URLEncoder.encode(param,"utf-8"));
-//            System.out.println("urlStr" + urlStr);
+            String urlStr = api.concat(URLEncoder.encode(param,"utf-8"));// 调整编码格式
+
+            System.out.println("##################urlStr: " + urlStr);
+
             URL url = new URL(urlStr);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-//            System.out.println("ResponseCode" + connection.getResponseCode());
             connection.setRequestMethod("GET");// 这里先默认只用get方式
 
             // 发送参数
@@ -261,35 +259,28 @@ public class SonarUtil {
 
     /**
      * 返回当前sonarqube中该项目的任务队列里任务数目
-     * @param projectName
      * @return
      */
-    public int getTasksNumInQueue (String projectName){
+    public int getTasksNumInQueue (){
         String apiOfTasks = "http://localhost:9000/api/ce/component?component=";
-        String param = projectName;
+        String param = this.projectName;
         JSONObject jsonObject = getJsonObjectFromApi(apiOfTasks, param);
         JSONArray queueAry = jsonObject.getJSONArray("queue");
         return queueAry.size();
     }
 
     /**
-     * 根据参数获得相应的指标
-     * @param param 向接口发送的参数
-     * @return 各种参数的值
+     * 根据参数一次性获得多个commit历史相应的指标
+     * @param param 参数
+     * @param measures 存储结果
      */
-    public void getAllSonarMeasures(String projectName, String param, HashMap<String, ArrayList<String>>measures) {
+    public void getAllSonarMeasuresFromWeb(String param, HashMap<String, ArrayList<String>>measures) {
         try {
-//            String apiOfTasks = "http://localhost:9000/api/ce/component?";
-//            JSONObject jsonObjectOfTasks = getJsonObjectFromApi(apiOfTasks, )
-
             String apiOfMeasures = "http://localhost:9000/api/measures/search_history?component="+projectName+"&metrics=";
             JSONObject jsonObjectOfMeasures = getJsonObjectFromApi(apiOfMeasures, param);
-//            JSONObject componentObj = jsonObjectOfMeasures.getJSONObject("component");    // 获取component的JSONObject对象
 
             if(jsonObjectOfMeasures != null) {
-//                System.out.println("jsonObjectOfMeasures:" + jsonObjectOfMeasures);
                 JSONArray measuresAry = jsonObjectOfMeasures.getJSONArray("measures"); // 由于是数组形式，先获取measures的JSONArray对象
-//                System.out.println("measuresAry:" + measuresAry);
 
                 for(int i = 0; i < measuresAry.size(); i++) {
                     JSONObject measuresObj = measuresAry.getJSONObject(i);       // 获取measures的JSONObject对象
@@ -310,11 +301,11 @@ public class SonarUtil {
     }
 
     /**
-     * 根据参数获得相应的指标
-     * @param param 向接口发送的参数
-     * @return 各种参数的值
+     * 根据参数获得当次commit对应的指标
+     * @param param 参数
+     * @param measures 存储结果
      */
-    public void getSonarMeasures(String projectName, String param, HashMap<String, String>measures) {
+    public void getSonarMeasuresFromWeb(String param, HashMap<String, String>measures) {
         try {
             String apiOfMeasures = "http://localhost:9000/api/measures/search_history?component="+projectName+"&metrics=";
             JSONObject jsonObjectOfMeasures = getJsonObjectFromApi(apiOfMeasures, param);
@@ -338,10 +329,10 @@ public class SonarUtil {
 
 
     /**
-     * 展示从sonar获得的数据结果
+     * 展示measures中数据结果
      * @param measures
      */
-    public void showMeasures(HashMap<String, ArrayList<String>>measures) {
+    public void showMeasures(HashMap<String, String>measures) {
         System.out.println("***************ScanTime***************");
         System.out.println("scan_time:" + measures.get("scan_time"));
         System.out.println();
@@ -482,48 +473,65 @@ public class SonarUtil {
 
     }
 
-    public ArrayList<ProjectIssue> getProjReport(String projectName) {
-        waitForTaskFinished(projectName);
+    /**
+     * 从web获得issues报告
+     * @return
+     */
+    public ArrayList<ProjectIssue> getProjIssuesReportFromWeb() {
+        waitForTaskFinished();
         ArrayList<ProjectIssue> projReport = new ArrayList<>();
         try {
-            String apiOfIssues = "http://localhost:9000/api/issues/search?componentKeys=";
-            JSONObject jsonObjectOfMeasures = getJsonObjectFromApi(apiOfIssues, projectName);
-//            JSONObject componentObj = jsonObjectOfMeasures.getJSONObject("component");    // 获取component的JSONObject对象
+            String apiOfIssues = "http://localhost:9000/api/issues/search?componentKeys=" + projectName + "&types=BUG,VULNERABILITY&ps=100&pageIndex=";
+            JSONObject jsonObjectOfIssues = getJsonObjectFromApi(apiOfIssues + 1, "");
 
-            String total = jsonObjectOfMeasures.getString("total");
-//            String total = totalObj.getString("total");
-//            projReport.put("total", (JSONObject) total);
-            System.out.println("total: " + total);
+            int totalNum = jsonObjectOfIssues.getIntValue("total");
+            int curNum = 0;// 设置每次返回100条数据
+            int pageIndex = 1;
+            System.out.println("total: " + totalNum);
 
-            JSONArray issuesAry = jsonObjectOfMeasures.getJSONArray("issues"); // 数组形式
-            for(int i = 0; i < issuesAry.size(); i++) {
-                JSONObject jsonObj = issuesAry.getJSONObject(i);
-                String component = jsonObj.getString("component");
-                String[] split = component.split(":");
-                component = split[1];
-
-                JSONObject textRangeObj = jsonObj.getJSONObject("textRange");
-                if(textRangeObj == null) {
-                    continue;// 若不存在属性：行数，则跳过该缺陷
-//                    System.out.println("******************");
-//                    System.out.println(jsonObj);
-//                    System.out.println("******************");
+            while (curNum < totalNum) {
+                JSONArray issuesAry = jsonObjectOfIssues.getJSONArray("issues"); // 数组形式
+                if(issuesAry.size() == 0) {
+                    break;// 表示数据已经全部读取完毕
                 }
-                String line = textRangeObj.getString("endLine");// 记录最后一行
 
-                ProjectIssue pi = new ProjectIssue(jsonObj.getString("key"),
-                        jsonObj.getString("rule"),
-                        jsonObj.getString("severity"),
-                        component,
-                        jsonObj.getString("project"),
-                        line,
-                        jsonObj.getString("hash"),
-                        jsonObj.getString("status"),
-                        jsonObj.getString("message"),
-                        jsonObj.getString("type"),
-                        textRangeObj);
-                projReport.add(pi);
+                for(int i = 0; i < issuesAry.size(); i++) {
+                    // 获取文件名
+                    JSONObject jsonObj = issuesAry.getJSONObject(i);
+                    String component = jsonObj.getString("component");
+                    String[] split = component.split(":");
+                    component = split[1];
+
+                    JSONObject textRangeObj = jsonObj.getJSONObject("textRange");
+                    if(textRangeObj == null) {
+                        continue;// 若不存在属性：行数，则跳过该缺陷
+                    }
+                    String line = textRangeObj.getString("endLine");// 记录最后一行
+
+                    ProjectIssue pi = new ProjectIssue(jsonObj.getString("key"),
+                            jsonObj.getString("rule"),
+                            jsonObj.getString("severity"),
+                            component,
+                            jsonObj.getString("project"),
+                            line,
+                            jsonObj.getString("hash"),
+                            jsonObj.getString("status"),
+                            jsonObj.getString("message"),
+                            jsonObj.getString("type"),
+                            textRangeObj);
+                    projReport.add(pi);
+                }
+
+                curNum += 100;// 设置每次返回100条数据
+                pageIndex++;
+
+                apiOfIssues = "http://localhost:9000/api/issues/search?componentKeys=" + projectName + "&types=BUG&types=VULNERABILITY&ps=100&pageIndex=";
+                jsonObjectOfIssues = getJsonObjectFromApi(apiOfIssues + pageIndex, "");
+
+
             }
+
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -552,17 +560,58 @@ public class SonarUtil {
         }
     }
 
-    public boolean waitForTaskFinished(String projectName) {
-        int numOfTasksInQueue = getTasksNumInQueue(projectName);
+    /**
+     * 等待sonar后台完成扫描结果的处理
+     * @return
+     */
+    public boolean waitForTaskFinished() {
+        int numOfTasksInQueue = getTasksNumInQueue();
         while (numOfTasksInQueue != 0) {
             try {
                 Thread.currentThread().sleep(2000);// 暂停一段时间再发送请求
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            numOfTasksInQueue = getTasksNumInQueue(projectName);
+            numOfTasksInQueue = getTasksNumInQueue();
             System.out.println("待处理任务个数：" + numOfTasksInQueue);
         }
         return true;
+    }
+
+
+    public ProjectInfo getProjInfo(int num) {
+        String projectPath = path.concat("\\").concat(projectFileName);
+        String projectInfoPath = path.concat("\\").concat(projectFileName).concat("-workspace").concat("\\").concat("ProjectInfo");
+        String newProjectPath = path + "\\" + projectFileName + "-workspace" + "\\" + projectFileName;
+
+        ProjectInfo projInfoTem = new ProjectInfo();
+        GitUtil.refreshWorkspaceByCMD(path, projectFileName);
+        GitUtil.runRollBackGitShell(newProjectPath, num);
+
+        try {
+            File file = new File(projectInfoPath, num + "");
+            if(file.exists()) {
+                // 通过本地获取扫描信息（issues和measures）
+                ObjectInputStream ois = new ObjectInputStream(new FileInputStream(projectInfoPath.concat("\\").concat(num+"")));
+                projInfoTem = ((ProjectInfo)ois.readObject());
+                ois.close();
+
+            } else {
+                // 通过api获取扫描信息（issues和measures）
+                String time = runSonarShell(newProjectPath);
+                HashMap<String, String> measures = combineSonarMeasures();
+                measures.put("scan_time", time);// 添加扫描时间指标
+
+                projInfoTem.setMeasures(measures);
+                projInfoTem.setIssues(getProjIssuesReportFromWeb());
+                ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(projectInfoPath.concat("\\").concat(num+"")));
+                oos.writeObject(projInfoTem);
+                oos.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return projInfoTem;
     }
 }

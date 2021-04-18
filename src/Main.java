@@ -12,77 +12,91 @@ public class Main {
     public static void main(String[] args) {
         // 输入配置信息
         System.out.println("输入待扫描项目地址：");
-//        String projectPath = input.nextLine();
-//        String projectPath = "D://news";// 暂时统一，避免重复输入
-//        String projectPath = "D:\\TestProjects\\spring-boot";// 暂时统一，避免重复输入
-//        String projectPath = "D:\\TestProjects\\interesting-python";// 暂时统一，避免重复输入//        String projectPath = "D:\\TestProjects\\interesting-python";// 暂时统一，避免重复输入
+
         String path = "D:\\TestProjects";
+
         String projectFileName = "untitled";
+//        String projectFileName = "interesting-python";
+//        String projectFileName = "bootstrap";
+//        String projectFileName = "checkstyle";
+//        String projectFileName = "JooLun-wx";
+//        String projectFileName = "RxJava";
+//        String projectFileName = "SpongeAPI";
 //        String projectFileName = "spring-boot";
+//        String projectFileName = "springfox";
+//        String projectFileName = "jeecg-boot";
+//        String projectFileName = "litemall";
+//        String projectFileName = "spring-boot-demo";
+//        String projectFileName = "spring-boot-old";
+
         String projectPath = path + "\\" + projectFileName;// 暂时统一，避免重复输入
         String newProjectPath = path + "\\" + projectFileName + "-workspace" + "\\" + projectFileName;
-        String ConFileName = "sonar-project.properties";// 配置文件名称
+        String conFileName = "sonar-project.properties";// 配置文件名称
 
         System.out.println("输入项目名称：");
 //        String projectName = input.nextLine();
+
 //        String projectName = "news";// 暂时统一，避免重复输入
-//        String projectName = "SpringBoot";// 暂时统一，避免重复输入
 //        String projectName = "PythonProject";// 暂时统一，避免重复输入
         String projectName = "bugTest";
+//        String projectName = "PythonProject";
+//        String projectName = "bootstrap";
+//        String projectName = "checkstyle";
+//        String projectName = "JooLun-wx";
+//        String projectName = "RxJava";
+//        String projectName = "SpongeAPI";
+//        String projectName = "SpringBoot";
+//        String projectName = "springfox";
+//        String projectName = "jeecg-boot";
+//        String projectName = "litemall";
+//        String projectName = "spring-boot-demo";
+//        String projectName = "spring-boot-old";
+
         String projectVersion = "1.0";
         String sources = "./";
         String binaries = "./";
 
 
-//        ArrayList<String> scanTime = new ArrayList<>();
         ArrayList<ArrayList<ProjectIssue>> projReports = new ArrayList<>();
 //        System.out.println("输入commit数目：");
-//      numOfCommit = input.nextInt();
+//        numOfCommit = input.nextInt();
 
-        SonarUtil sonar = new SonarUtil(numOfCommit, projectPath, projectFileName, projectName, projectVersion, sources, binaries);
-
+        SonarUtil sonar = new SonarUtil(numOfCommit, path, projectFileName, projectName, projectVersion, sources, binaries);
 
         // 创建配置文件
-//        sonar.createConfFile(projectPath.concat("/"), fileName, projectName, projectVersion, sources, binaries);
-//
-//        for(int i = 0; i < numOfCommit; i++) {
-//            System.out.println("第" + i + "个版本");
-//
-//            // 运行命令行
-//            String time = runSonarShell(projectPath);
-//            scanTime.add(0, time);
-//
-//            // 获得该版本代码的报告
-//            while (getTasksNumInQueue(projectName) != 0){
-//                try {
-//                    Thread.currentThread().sleep(1000);// 暂停一段时间再发送请求
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//            projReports.add(getProjReport(projectName));
-//            System.out.println("projReport: " + getProjReport(projectName));
+        sonar.createConfFile();
 
-            // 回滚为上个commit版本
-//            runRollBackGitShell(projectPath);
-//        }
-//        measures.put("scan_time", scanTime);
+        ProjectInfo pi1 = sonar.getProjInfo(5);
+        ProjectInfo pi2 = sonar.getProjInfo(0);
+//        System.out.println("issues : " + pi1.issues.size());
+//        System.out.println("measures : " + pi1.measures.size());
+//        System.out.println("############################");
 
-        GitUtil.refreshWorkspaceByCMD(path, projectFileName);
-        GitUtil.runRollBackGitShell(newProjectPath, 1);
-        sonar.runSonarShell(newProjectPath);
-        ArrayList<ProjectIssue> pi = sonar.getProjReport(projectName);
-        projReports.add(pi);
 
-        GitUtil.refreshWorkspaceByCMD(path, projectFileName);
-        GitUtil.runRollBackGitShell(newProjectPath, 0);
-        sonar.runSonarShell(newProjectPath);
-        pi = sonar.getProjReport(projectName);
-        projReports.add(pi);
-//
+//        System.out.println(pi2.issues.size());
+        GitUtil.getAllCompareIssuesInfo(pi1.getIssues(), pi2.getIssues());
+
+//        GitUtil.refreshWorkspaceByCMD(path, projectFileName);
+//        GitUtil.runRollBackGitShell(newProjectPath, 5000);
+//        String time = sonar.runSonarShell(newProjectPath);
+
+//        System.out.println("projReport: " + sonar.getProjReport(projectName));
+//        HashMap<String, String> measures = sonar.combineSonarMeasures(projectName);
+//        System.out.println(measures);
+//        System.out.println("***********************************");
+//        System.out.println("scantime: " + time);
+
+//        pi = sonar.getProjReport(projectName);
+//        projReports.add(pi);
+
+//        GitUtil.refreshWorkspaceByCMD(path, projectFileName);
+//        GitUtil.runRollBackGitShell(newProjectPath, 0);
+//        sonar.runSonarShell(newProjectPath);
+//        pi = sonar.getProjIssuesReportFromWeb();
+//        projReports.add(pi);
+
 //        sonar.showProjInfo(projReports);
 
-        GitUtil.runDiffGitShell(projReports.get(0), projReports.get(1), newProjectPath);
     }
 }
 
