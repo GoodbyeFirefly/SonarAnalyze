@@ -477,9 +477,9 @@ public class SonarUtil {
      * 从web获得issues报告
      * @return
      */
-    public ArrayList<ProjectIssue> getProjIssuesReportFromWeb() {
+    public ArrayList<sonarProjectIssue> getProjIssuesReportFromWeb() {
         waitForTaskFinished();
-        ArrayList<ProjectIssue> projReport = new ArrayList<>();
+        ArrayList<sonarProjectIssue> projReport = new ArrayList<>();
         try {
             String apiOfIssues = "http://localhost:9000/api/issues/search?componentKeys=" + projectName + "&types=BUG,VULNERABILITY&ps=100&pageIndex=";
             JSONObject jsonObjectOfIssues = getJsonObjectFromApi(apiOfIssues + 1, "");
@@ -508,7 +508,7 @@ public class SonarUtil {
                     }
                     String line = textRangeObj.getString("endLine");// 记录最后一行
 
-                    ProjectIssue pi = new ProjectIssue(jsonObj.getString("key"),
+                    sonarProjectIssue pi = new sonarProjectIssue(jsonObj.getString("key"),
                             jsonObj.getString("rule"),
                             jsonObj.getString("severity"),
                             component,
@@ -542,12 +542,12 @@ public class SonarUtil {
      * 展示所有版本的report
      * @param projReports
      */
-    public void showProjInfo(ArrayList<ArrayList<ProjectIssue>> projReports) {
+    public void showProjInfo(ArrayList<ArrayList<sonarProjectIssue>> projReports) {
         System.out.println();
         for (int i = 0; i < projReports.size(); i++) {
 
             System.out.println("version: " + (i + 1));
-            ArrayList<ProjectIssue> projInfo = projReports.get(i);
+            ArrayList<sonarProjectIssue> projInfo = projReports.get(i);
 
 //            Collection jsonObj = projInfo.values();
 //            for(Iterator iterator = jsonObj.iterator(); iterator.hasNext();) {
@@ -585,8 +585,7 @@ public class SonarUtil {
         String newProjectPath = path + "\\" + projectFileName + "-workspace" + "\\" + projectFileName;
 
         ProjectInfo projInfoTem = new ProjectInfo();
-        GitUtil.refreshWorkspaceByCMD(path, projectFileName);
-        GitUtil.runRollBackGitShell(newProjectPath, num);
+
 
         try {
             File file = new File(projectInfoPath, num + "");
@@ -597,6 +596,8 @@ public class SonarUtil {
                 ois.close();
 
             } else {
+                GitUtil.refreshWorkspaceByCMD(path, projectFileName);
+                GitUtil.runRollBackGitShell(newProjectPath, num);
                 // 通过api获取扫描信息（issues和measures）
                 String time = runSonarShell(newProjectPath);
                 HashMap<String, String> measures = combineSonarMeasures();

@@ -35,10 +35,10 @@ public class GitUtil {
         return -1;
     }
 
-    public static String runDiffGitShell(ArrayList<ProjectIssue> lastProjIssues, ArrayList<ProjectIssue> curProjIssues, String projectPath) {
+    public static String runDiffGitShell(ArrayList<sonarProjectIssue> lastProjIssues, ArrayList<sonarProjectIssue> curProjIssues, String projectPath, int num) {
         Runtime run = Runtime.getRuntime();
         try {
-            Process process = run.exec("cmd.exe /c cd " + projectPath + "&& git diff HEAD~1");
+            Process process = run.exec("cmd.exe /c cd " + projectPath + "&& git diff HEAD~" + num);
             InputStream in = process.getInputStream();
             InputStreamReader reader = new InputStreamReader(in);
             BufferedReader br = new BufferedReader(reader);
@@ -74,7 +74,7 @@ public class GitUtil {
                     System.out.println(oldLineIndex + " " + newLineIndex + ": " + message);
 
                     if(message.substring(0, 1).equals("+")) {
-                        getCompareIssuesInfo(lastProjIssues, curProjIssues, fileName, newLineIndex);
+                        getSonarCompareIssuesInfo(lastProjIssues, curProjIssues, fileName, newLineIndex);
                         newLineIndex++;
                     } else if(message.substring(0, 1).equals("-")) {
                         oldLineIndex++;
@@ -178,14 +178,14 @@ public class GitUtil {
      * @param index
      * @return
      */
-    public static String getCompareIssuesInfo(ArrayList<ProjectIssue> lastProjIssues, ArrayList<ProjectIssue> curProjIssues, String fileName, int index) {
-        for(ProjectIssue pi : curProjIssues) {
+    public static String getSonarCompareIssuesInfo(ArrayList<sonarProjectIssue> lastProjIssues, ArrayList<sonarProjectIssue> curProjIssues, String fileName, int index) {
+        for(sonarProjectIssue pi : curProjIssues) {
             String s = pi.getComponent();
 //            System.out.println("fileName: " + fileName);
 //            System.out.println("index: " + index);
             if(s.equals(fileName) && pi.getLine() != null && Integer.valueOf(pi.getLine()) == index) {
                 boolean findFlag = false;
-                for(ProjectIssue tem : lastProjIssues) {
+                for(sonarProjectIssue tem : lastProjIssues) {
                     if (tem.getComponent().equals(pi.getComponent()) &&
                     tem.getKey().equals(pi.getKey()) &&
                     tem.getHash().equals(pi.getHash())) {
@@ -225,12 +225,25 @@ public class GitUtil {
      * @param curProjIssues
      * @return
      */
-    public static String getAllCompareIssuesInfo(ArrayList<ProjectIssue> lastProjIssues, ArrayList<ProjectIssue> curProjIssues) {
+    public static String getAllSonarCompareIssuesInfo(ArrayList<sonarProjectIssue> lastProjIssues, ArrayList<sonarProjectIssue> curProjIssues) {
         int numOfBug = 0;
         int numOfVul = 0;
-        for(ProjectIssue pi : curProjIssues) {
+        int numOfNew = 0;
+        int numOfDelete = 0;
+        int numOfFix = 0;
+        int numOfReopen = 0;
+
+        int bugOfNew = 0;
+        int vulOfNew = 0;
+        int bugOfDelete = 0;
+        int vulOfDelete = 0;
+        int bugOfFix = 0;
+        int vulOfFix = 0;
+        int bugOfReopen = 0;
+        int vulOfReopen = 0;
+        for(sonarProjectIssue pi : curProjIssues) {
             boolean findFlag = false;
-            for(ProjectIssue tem : lastProjIssues) {
+            for(sonarProjectIssue tem : lastProjIssues) {
                 if (tem.getComponent().equals(pi.getComponent()) &&
                         tem.getKey().equals(pi.getKey()) &&
                         tem.getHash().equals(pi.getHash()) &&
@@ -254,9 +267,12 @@ public class GitUtil {
                         System.out.println("* " + pi.getType());
                         if(pi.getType().equals("BUG")) {
                             numOfBug++;
+                            bugOfFix++;
                         }else {
                             numOfVul++;
+                            vulOfFix++;
                         }
+                        numOfFix++;
                         System.out.println("* " + pi.getComponent());
                         System.out.println("* " + pi.getLine());
                         System.out.println("* " + pi.getMessage());
@@ -267,9 +283,12 @@ public class GitUtil {
                         System.out.println("* " + pi.getType());
                         if(pi.getType().equals("BUG")) {
                             numOfBug++;
+                            bugOfReopen++;
                         }else {
                             numOfVul++;
+                            vulOfReopen++;
                         }
+                        numOfReopen++;
                         System.out.println("* " + pi.getComponent());
                         System.out.println("* " + pi.getLine());
                         System.out.println("* " + pi.getMessage());
@@ -283,9 +302,12 @@ public class GitUtil {
                 System.out.println("* " + pi.getType());
                 if(pi.getType().equals("BUG")) {
                     numOfBug++;
+                    bugOfNew++;
                 }else {
                     numOfVul++;
+                    vulOfNew++;
                 }
+                numOfNew++;
                 System.out.println("* " + pi.getComponent());
                 System.out.println("* " + pi.getLine());
                 System.out.println("* " + pi.getMessage());
@@ -293,9 +315,9 @@ public class GitUtil {
             }
         }
 
-        for(ProjectIssue pi : lastProjIssues) {
+        for(sonarProjectIssue pi : lastProjIssues) {
             boolean findFlag = false;
-            for(ProjectIssue tem : curProjIssues) {
+            for(sonarProjectIssue tem : curProjIssues) {
                 if (tem.getComponent().equals(pi.getComponent()) &&
                         tem.getKey().equals(pi.getKey()) &&
                         tem.getHash().equals(pi.getHash()) &&
@@ -310,17 +332,39 @@ public class GitUtil {
                 System.out.println("* " + pi.getType());
                 if(pi.getType().equals("BUG")) {
                     numOfBug++;
+                    bugOfDelete++;
                 }else {
                     numOfVul++;
+                    vulOfDelete++;
                 }
+                numOfDelete++;
                 System.out.println("* " + pi.getComponent());
                 System.out.println("* " + pi.getLine());
                 System.out.println("* " + pi.getMessage());
                 System.out.println("***************************************");
             }
         }
-        System.out.println("numOfBug: " + numOfBug);
-        System.out.println("numOfVul: " + numOfVul);
+//        System.out.println("numOfBug: " + numOfBug);
+//        System.out.println("numOfVul: " + numOfVul);
+//        System.out.println("修复的缺陷" + numOfFix);
+//        System.out.println("重现的缺陷" + numOfReopen);
+//        System.out.println("新增的缺陷" + numOfNew);
+//        System.out.println("消失的缺陷" + numOfDelete);
+
+
+        System.out.println("新增的bug缺陷" + bugOfNew);
+        System.out.println("新增的vul缺陷" + vulOfNew + "\n");
+
+        System.out.println("消失的bug缺陷" + bugOfDelete);
+        System.out.println("消失的vul缺陷" + vulOfDelete + "\n");
+
+        System.out.println("修复的vul缺陷" + bugOfFix);
+        System.out.println("修复的bug缺陷" + vulOfFix + "\n");
+
+        System.out.println("重现的vul缺陷" + bugOfReopen);
+        System.out.println("重现的bug缺陷" + vulOfReopen + "\n");
+
+
         return null;
     }
 

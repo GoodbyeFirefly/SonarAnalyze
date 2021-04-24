@@ -15,14 +15,14 @@ public class Main {
 
         String path = "D:\\TestProjects";
 
-        String projectFileName = "untitled";
+//        String projectFileName = "untitled";
 //        String projectFileName = "interesting-python";
 //        String projectFileName = "bootstrap";
 //        String projectFileName = "checkstyle";
 //        String projectFileName = "JooLun-wx";
 //        String projectFileName = "RxJava";
 //        String projectFileName = "SpongeAPI";
-//        String projectFileName = "spring-boot";
+        String projectFileName = "spring-boot";
 //        String projectFileName = "springfox";
 //        String projectFileName = "jeecg-boot";
 //        String projectFileName = "litemall";
@@ -38,14 +38,14 @@ public class Main {
 
 //        String projectName = "news";// 暂时统一，避免重复输入
 //        String projectName = "PythonProject";// 暂时统一，避免重复输入
-        String projectName = "bugTest";
+//        String projectName = "bugTest";
 //        String projectName = "PythonProject";
 //        String projectName = "bootstrap";
 //        String projectName = "checkstyle";
 //        String projectName = "JooLun-wx";
 //        String projectName = "RxJava";
 //        String projectName = "SpongeAPI";
-//        String projectName = "SpringBoot";
+        String projectName = "SpringBoot";
 //        String projectName = "springfox";
 //        String projectName = "jeecg-boot";
 //        String projectName = "litemall";
@@ -57,7 +57,7 @@ public class Main {
         String binaries = "./";
 
 
-        ArrayList<ArrayList<ProjectIssue>> projReports = new ArrayList<>();
+        ArrayList<ArrayList<sonarProjectIssue>> projReports = new ArrayList<>();
 //        System.out.println("输入commit数目：");
 //        numOfCommit = input.nextInt();
 
@@ -66,15 +66,15 @@ public class Main {
         // 创建配置文件
         sonar.createConfFile();
 
-        ProjectInfo pi1 = sonar.getProjInfo(5);
+
+//        ProjectInfo pi1 = sonar.getProjInfo(1);
         ProjectInfo pi2 = sonar.getProjInfo(0);
-//        System.out.println("issues : " + pi1.issues.size());
-//        System.out.println("measures : " + pi1.measures.size());
-//        System.out.println("############################");
 
+        sonar.showMeasures(pi2.getMeasures());
 
-//        System.out.println(pi2.issues.size());
-        GitUtil.getAllCompareIssuesInfo(pi1.getIssues(), pi2.getIssues());
+//        GitUtil.runDiffGitShell(pi1.getIssues(), pi2.getIssues(), projectPath, 1);
+
+//        GitUtil.getAllCompareIssuesInfo(pi1.getIssues(), pi2.getIssues());
 
 //        GitUtil.refreshWorkspaceByCMD(path, projectFileName);
 //        GitUtil.runRollBackGitShell(newProjectPath, 5000);
@@ -95,7 +95,6 @@ public class Main {
 //        pi = sonar.getProjIssuesReportFromWeb();
 //        projReports.add(pi);
 
-//        sonar.showProjInfo(projReports);
 
     }
 }

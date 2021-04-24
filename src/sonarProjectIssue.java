@@ -2,7 +2,7 @@ import com.alibaba.fastjson.JSONObject;
 
 import java.io.Serializable;
 
-public class ProjectIssue implements Serializable {
+public class sonarProjectIssue implements Serializable {
     String key;
     String rule;
     String severity;
@@ -15,7 +15,7 @@ public class ProjectIssue implements Serializable {
     String type;
     JSONObject textRange;
 
-    public ProjectIssue(String key, String rule, String severity, String component, String project, String line, String hash, String status, String message, String type, JSONObject textRange) {
+    public sonarProjectIssue(String key, String rule, String severity, String component, String project, String line, String hash, String status, String message, String type, JSONObject textRange) {
         this.key = key;
         this.rule = rule;
         this.severity = severity;
