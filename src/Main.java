@@ -22,12 +22,14 @@ public class Main {
 //        String projectFileName = "JooLun-wx";
 //        String projectFileName = "RxJava";
 //        String projectFileName = "SpongeAPI";
-        String projectFileName = "spring-boot";
+//        String projectFileName = "spring-boot";
 //        String projectFileName = "springfox";
 //        String projectFileName = "jeecg-boot";
 //        String projectFileName = "litemall";
 //        String projectFileName = "spring-boot-demo";
 //        String projectFileName = "spring-boot-old";
+        String projectFileName = "TestForFindbugs";
+//        String projectFileName = "TestForSonar";
 
         String projectPath = path + "\\" + projectFileName;// 暂时统一，避免重复输入
         String newProjectPath = path + "\\" + projectFileName + "-workspace" + "\\" + projectFileName;
@@ -45,7 +47,7 @@ public class Main {
 //        String projectName = "JooLun-wx";
 //        String projectName = "RxJava";
 //        String projectName = "SpongeAPI";
-        String projectName = "SpringBoot";
+//        String projectName = "SpringBoot";
 //        String projectName = "springfox";
 //        String projectName = "jeecg-boot";
 //        String projectName = "litemall";
@@ -61,20 +63,27 @@ public class Main {
 //        System.out.println("输入commit数目：");
 //        numOfCommit = input.nextInt();
 
-        SonarUtil sonar = new SonarUtil(numOfCommit, path, projectFileName, projectName, projectVersion, sources, binaries);
+//        SonarUtil sonar = new SonarUtil(numOfCommit, path, projectFileName, projectName, projectVersion, sources, binaries);
 
         // 创建配置文件
-        sonar.createConfFile();
+//        sonar.createConfFile();
+        File file = new File("D:\\TestProjects\\TestForFindbugs-workspace\\TestForFindbugs");
+//        GitUtil.compailJavaToClass(file, "D:\\TestProjects\\TestForFindbugs\\classes");
+
+        ArrayList<FindbugsIssue> issues = FindbugsUtil.getFindbugsIssues("D:\\TestProjects\\spring-boot-demo-workspace\\findbugs.html");
+
+        System.out.println(issues.size());
+//        FindbugsUtil.runFindbugsShell(path, projectFileName);
 
 
-//        ProjectInfo pi1 = sonar.getProjInfo(1);
-        ProjectInfo pi2 = sonar.getProjInfo(0);
+//        ProjectInfo pi1 = sonar.getProjInfo(100);
+//        ProjectInfo pi2 = sonar.getProjInfo(0);
 
-        sonar.showMeasures(pi2.getMeasures());
+//        sonar.showMeasures(pi2.getMeasures());
 
 //        GitUtil.runDiffGitShell(pi1.getIssues(), pi2.getIssues(), projectPath, 1);
 
-//        GitUtil.getAllCompareIssuesInfo(pi1.getIssues(), pi2.getIssues());
+//        GitUtil.getAllSonarCompareIssuesInfo(pi1.getIssues(), pi2.getIssues());
 
 //        GitUtil.refreshWorkspaceByCMD(path, projectFileName);
 //        GitUtil.runRollBackGitShell(newProjectPath, 5000);

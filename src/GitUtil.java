@@ -1,7 +1,10 @@
 import java.io.*;
 import java.util.ArrayList;
+import java.util.regex.*;
 
 public class GitUtil {
+
+    private static Runtime r = Runtime.getRuntime();
 
     public static long runRollBackGitShell(String projectPath, int num) {
         if(num == 0) {
@@ -368,4 +371,85 @@ public class GitUtil {
         return null;
     }
 
+//    /**
+//     * 将sourceFile所指文件夹中（包括子文件夹）所有java文件编译为class文件
+//     * @param sourceFile
+//     * @param targetPath
+//     */
+//    public static void compailJavaToClass(File sourceFile, String targetPath) {
+//        try {
+//            // 判断文件不为null或文件目录存在
+//            if (sourceFile == null || !sourceFile.exists()){
+//                return;
+//            }
+//            // 取得这个目录下的所有子文件对象
+//            File[] files = sourceFile.listFiles();
+//            // 遍历该目录下的文件对象
+//            for (File f: files){
+//
+//                if (f.isDirectory()){
+//////                    String name = f.getName();
+////                    String path = f.getParentFile().getPath();
+////
+////                    // .：任意字符，*：任意次数
+////                    // 这里表示匹配任意结尾为java的文件
+////                    String pattern = ".*java";
+//////                    System.out.println("path: " + path);
+////                    String cmd = "javac -encoding utf-8 -d " + targetPath + " " + path + "\\*.java";
+////                    System.out.println(cmd);
+////                    Process proc = Runtime.getRuntime().exec(cmd);
+////                    int processCode = proc.waitFor();
+////                    if(processCode != 0) {
+////                        System.out.println("转化失败[GitUtil:406]");
+////                    }
+////                    proc.destroy();
+//                    compailJavaToClass(f, targetPath);
+//                }else {
+////                     打印文件名
+//                    String name = f.getName();
+//                    String path = f.getPath();
+//
+//                    // .：任意字符，*：任意次数
+//                    // 这里表示匹配任意结尾为java的文件
+//                    String pattern = ".*java";
+////                    System.out.println("path: " + path);
+//                    if(Pattern.matches(pattern, name)) {
+//                        String cmd = "javac -encoding utf-8 -d " + targetPath + " " + path;
+//                        System.out.println(cmd);
+//                        Process proc = Runtime.getRuntime().exec(cmd);
+//                        int processCode = proc.waitFor();
+//                        if(processCode != 0) {
+//                            System.out.println("转化失败[GitUtil:406]");
+//                        }
+//                        proc.destroy();
+//                    }
+//                }
+//            }
+//        }catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//    }
+
+//    public static void compailJavaToClass(File sourceFile) {
+//        try {
+//            // 判断文件不为null或文件目录存在
+//            if (null != sourceFile){
+//                if(sourceFile.isDirectory()) {
+//                    File[] files = sourceFile.listFiles();
+//                    for(File f : files) {
+//                        compailJavaToClass(f);
+//                    }
+//                } else if(sourceFile.isFile() && sourceFile.getName().endsWith(".java")) {
+//                    r.exec("javac " + sourceFile.getAbsolutePath());
+//
+//                    System.out.println("正在编译：" + sourceFile.getAbsolutePath());
+//                }
+//            }
+//
+//        }catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//    }
 }
