@@ -15,7 +15,7 @@ public class Main {
 
         String path = "D:\\TestProjects";
 
-//        String projectFileName = "untitled";
+        String projectFileName = "untitled";
 //        String projectFileName = "interesting-python";
 //        String projectFileName = "bootstrap";
 //        String projectFileName = "checkstyle";
@@ -28,7 +28,7 @@ public class Main {
 //        String projectFileName = "litemall";
 //        String projectFileName = "spring-boot-demo";
 //        String projectFileName = "spring-boot-old";
-        String projectFileName = "TestForFindbugs";
+//        String projectFileName = "TestForFindbugs";
 //        String projectFileName = "TestForSonar";
 
         String projectPath = path + "\\" + projectFileName;// 暂时统一，避免重复输入
@@ -40,7 +40,7 @@ public class Main {
 
 //        String projectName = "news";// 暂时统一，避免重复输入
 //        String projectName = "PythonProject";// 暂时统一，避免重复输入
-//        String projectName = "bugTest";
+        String projectName = "bugTest";
 //        String projectName = "PythonProject";
 //        String projectName = "bootstrap";
 //        String projectName = "checkstyle";
@@ -63,7 +63,7 @@ public class Main {
 //        System.out.println("输入commit数目：");
 //        numOfCommit = input.nextInt();
 
-//        SonarUtil sonar = new SonarUtil(numOfCommit, path, projectFileName, projectName, projectVersion, sources, binaries);
+        SonarUtil sonar = new SonarUtil(numOfCommit, path, projectFileName, projectName, projectVersion, sources, binaries);
 
         // 创建配置文件
 //        sonar.createConfFile();
@@ -76,12 +76,12 @@ public class Main {
 //        FindbugsUtil.runFindbugsShell(path, projectFileName);
 
 
-//        ProjectInfo pi1 = sonar.getProjInfo(100);
-//        ProjectInfo pi2 = sonar.getProjInfo(0);
+        ProjectInfo pi1 = sonar.getProjInfo(1);
+        ProjectInfo pi2 = sonar.getProjInfo(0);
 
 //        sonar.showMeasures(pi2.getMeasures());
 
-//        GitUtil.runDiffGitShell(pi1.getIssues(), pi2.getIssues(), projectPath, 1);
+        GitUtil.runSonarDiffGitShell(pi1.getIssues(), pi2.getIssues(), projectPath, 1);
 
 //        GitUtil.getAllSonarCompareIssuesInfo(pi1.getIssues(), pi2.getIssues());
 

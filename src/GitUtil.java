@@ -252,17 +252,20 @@ public class GitUtil {
                 String s = pi.getComponent();
                 if(s.equals(fileName) && pi.getLine() != null && Integer.valueOf(pi.getLine()) == index) {
                     boolean findFlag = false;
-                    for(sonarProjectIssue tem : lastProjIssues) {
+                    for(sonarProjectIssue tem : curProjIssues) {
                         if (tem.getComponent().equals(pi.getComponent()) &&
                                 tem.getKey().equals(pi.getKey()) &&
                                 tem.getHash().equals(pi.getHash())) {
                             // 找到了，不需要处理
-                        } else {
-                            System.out.println("***************************************");
-                            System.out.println("* 消失的缺陷：");
-                            System.out.println("* " + pi.getMessage());
-                            System.out.println("***************************************");
+                            findFlag = true;
+                            break;
                         }
+                    }
+                    if(findFlag == false) {
+                        System.out.println("***************************************");
+                        System.out.println("* 消失的缺陷：");
+                        System.out.println("* " + pi.getMessage());
+                        System.out.println("***************************************");
                     }
                 }
             }

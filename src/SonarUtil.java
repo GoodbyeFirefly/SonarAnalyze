@@ -588,10 +588,10 @@ public class SonarUtil {
 
 
         try {
-            File file = new File(projectInfoPath, num + "");
+            File file = new File(projectInfoPath, "sonar_" + num);
             if(file.exists()) {
                 // 通过本地获取扫描信息（issues和measures）
-                ObjectInputStream ois = new ObjectInputStream(new FileInputStream(projectInfoPath.concat("\\").concat(num+"")));
+                ObjectInputStream ois = new ObjectInputStream(new FileInputStream(projectInfoPath.concat("\\").concat("sonar_" + num)));
                 projInfoTem = ((ProjectInfo)ois.readObject());
                 ois.close();
 
@@ -605,7 +605,7 @@ public class SonarUtil {
 
                 projInfoTem.setMeasures(measures);
                 projInfoTem.setIssues(getProjIssuesReportFromWeb());
-                ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(projectInfoPath.concat("\\").concat(num+"")));
+                ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(projectInfoPath.concat("\\").concat("sonar_" + num)));
                 oos.writeObject(projInfoTem);
                 oos.close();
             }
