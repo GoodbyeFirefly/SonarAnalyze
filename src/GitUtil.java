@@ -38,7 +38,7 @@ public class GitUtil {
         return -1;
     }
 
-    public static String runDiffGitShell(ArrayList<sonarProjectIssue> lastProjIssues, ArrayList<sonarProjectIssue> curProjIssues, String projectPath, int num) {
+    public static String runSonarDiffGitShell(ArrayList<sonarProjectIssue> lastProjIssues, ArrayList<sonarProjectIssue> curProjIssues, String projectPath, int num) {
         Runtime run = Runtime.getRuntime();
         try {
             Process process = run.exec("cmd.exe /c cd " + projectPath + "&& git diff HEAD~" + num);
@@ -68,7 +68,67 @@ public class GitUtil {
                     newLineIndex = Integer.valueOf(split[3]);
                     flag = true;
 
+                    continue;// 跳出这次循环
+                }
+                if(flag) {
 
+                    System.out.println(oldLineIndex + " " + newLineIndex + ": " + message);
+
+                    if(message.substring(0, 1).equals("+")) {
+                        getSonarCompareIssuesInfo(lastProjIssues, curProjIssues, fileName, newLineIndex, true);
+                        newLineIndex++;
+                    } else if(message.substring(0, 1).equals("-")) {
+                        getSonarCompareIssuesInfo(lastProjIssues, curProjIssues, fileName, oldLineIndex, false);
+                        oldLineIndex++;
+                    } else {
+                        getSonarCompareIssuesInfo(lastProjIssues, curProjIssues, fileName, newLineIndex, true);
+                        newLineIndex++;
+                        getSonarCompareIssuesInfo(lastProjIssues, curProjIssues, fileName, oldLineIndex, false);
+                        oldLineIndex++;
+                    }
+                }
+//                sb.append(message + "\n");
+
+            }
+
+            System.out.println(sb);
+            return sb.toString();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        run.exit(0);
+        return null;
+    }
+
+    public static String runFindbugsDiffGitShell(ArrayList<FindbugsIssue> lastProjIssues, ArrayList<FindbugsIssue> curProjIssues, String projectPath, int num) {
+        Runtime run = Runtime.getRuntime();
+        try {
+            Process process = run.exec("cmd.exe /c cd " + projectPath + "&& git diff HEAD~" + num);
+            InputStream in = process.getInputStream();
+            InputStreamReader reader = new InputStreamReader(in);
+            BufferedReader br = new BufferedReader(reader);
+            StringBuffer sb = new StringBuffer();
+            String message = null;
+            String fileName = null;
+            int oldLineIndex = 0, newLineIndex = 0;
+            boolean flag = false;// 标识接下来的内容是否为diff报告中的内容
+            while((message = br.readLine()) != null) {
+                if(message.length() > 10 && message.substring(0, 10).equals("diff --git")) {
+                    flag = false;
+//                    System.out.println("message: " + message);
+                    String[] split = message.split(" ");
+                    fileName = split[2].substring(2);
+                    System.out.println("\nfileName: " + fileName);
+                    continue;// 跳出这次循环
+                }
+                if(message.length() > 2 && message.substring(0, 2).equals("@@")) {
+
+                    String[] split = message.split(" |,");
+                    // 获取当前diff报告开始的行数
+                    oldLineIndex = 0 - Integer.valueOf(split[1]);
+                    newLineIndex = Integer.valueOf(split[3]);
+                    flag = true;
 
                     continue;// 跳出这次循环
                 }
@@ -77,11 +137,13 @@ public class GitUtil {
                     System.out.println(oldLineIndex + " " + newLineIndex + ": " + message);
 
                     if(message.substring(0, 1).equals("+")) {
-                        getSonarCompareIssuesInfo(lastProjIssues, curProjIssues, fileName, newLineIndex);
+                        getFindbugsCompareIsuesInfo(lastProjIssues, curProjIssues, fileName, oldLineIndex, newLineIndex, 1);
                         newLineIndex++;
                     } else if(message.substring(0, 1).equals("-")) {
+                        getFindbugsCompareIsuesInfo(lastProjIssues, curProjIssues, fileName, oldLineIndex, newLineIndex, 2);
                         oldLineIndex++;
                     } else {
+                        getFindbugsCompareIsuesInfo(lastProjIssues, curProjIssues, fileName, oldLineIndex, newLineIndex, 0);
                         newLineIndex++;
                         oldLineIndex++;
                     }
@@ -174,14 +236,39 @@ public class GitUtil {
     }
 
     /**
-     * 根据文件名和对应行数，查找新版本中对应的缺陷信息，进而对比旧版本中缺陷信息，查看缺陷的状况（新增、修复、重现、延续）
+     * 根据文件名和对应行数，查找新版本中对应的缺陷信息，进而对比旧版本中缺陷信息，
+     * 查看缺陷的状况（新增、修复、重现、延续）
      * @param lastProjIssues
      * @param curProjIssues
      * @param fileName
-     * @param index
+     * @param index flag为true时表示当前版本所要验证的代码行，false表示历史版本
+     * @param flag true：以当前版本为基准，遍历历史版本；false：以历史版本为基准，遍历当前版本
      * @return
      */
-    public static String getSonarCompareIssuesInfo(ArrayList<sonarProjectIssue> lastProjIssues, ArrayList<sonarProjectIssue> curProjIssues, String fileName, int index) {
+    public static String getSonarCompareIssuesInfo(ArrayList<sonarProjectIssue> lastProjIssues, ArrayList<sonarProjectIssue> curProjIssues, String fileName, int index, boolean flag) {
+        // 寻找消失的缺陷
+        if(flag == false) {
+            for (sonarProjectIssue pi : lastProjIssues) {
+                String s = pi.getComponent();
+                if(s.equals(fileName) && pi.getLine() != null && Integer.valueOf(pi.getLine()) == index) {
+                    boolean findFlag = false;
+                    for(sonarProjectIssue tem : lastProjIssues) {
+                        if (tem.getComponent().equals(pi.getComponent()) &&
+                                tem.getKey().equals(pi.getKey()) &&
+                                tem.getHash().equals(pi.getHash())) {
+                            // 找到了，不需要处理
+                        } else {
+                            System.out.println("***************************************");
+                            System.out.println("* 消失的缺陷：");
+                            System.out.println("* " + pi.getMessage());
+                            System.out.println("***************************************");
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
         for(sonarProjectIssue pi : curProjIssues) {
             String s = pi.getComponent();
 //            System.out.println("fileName: " + fileName);
@@ -219,6 +306,87 @@ public class GitUtil {
 
             }
         }
+        return null;
+    }
+
+    /**
+     *
+     * @param lastProjIssues
+     * @param curProjIssues
+     * @param fileName
+     * @param oldLineIndex
+     * @param newLineIndex
+     * @param flag 0：共有代码，1：新增代码，2：删除代码
+     * @return
+     */
+    public static String getFindbugsCompareIsuesInfo(ArrayList<FindbugsIssue> lastProjIssues, ArrayList<FindbugsIssue>  curProjIssues, String fileName, int oldLineIndex, int newLineIndex, int flag) {
+        // 表示此行代码为新增代码
+        if(flag == 1) {
+            for( FindbugsIssue fi : curProjIssues) {
+                if(fileName.endsWith(fi.getComponent()) && Integer.valueOf(fi.getLine()) == newLineIndex) {
+                    System.out.println("***************************************");
+                    System.out.println("* 新增的缺陷：");
+                    System.out.println("* " + fi.getMessage());
+                    System.out.println("***************************************");
+                }
+            }
+        }
+        // 表示此行代码在新版本中已经删除
+        else if(flag == 2) {
+            for(FindbugsIssue fi : lastProjIssues) {
+                if(fileName.endsWith(fi.getComponent()) && Integer.valueOf(fi.getLine()) == oldLineIndex) {
+                    System.out.println("***************************************");
+                    System.out.println("* 消失的缺陷：");
+                    System.out.println("* " + fi.getMessage());
+                    System.out.println("***************************************");
+                }
+            }
+        }
+        // 表示此行代码本身未变动，但具体的位置可能发生改变，且可能会对缺陷产生影响
+        else {
+            boolean findInOldIssues = false;// 标记是否在旧版本代码中找到对应缺陷
+            boolean findInNewIssues = false;// 标记是否在新版本代码中找到对应缺陷
+            FindbugsIssue oldIssue = null;
+            FindbugsIssue newIssue = null;
+            for(FindbugsIssue fi : lastProjIssues) {
+                if(fileName.endsWith(fi.getComponent()) && Integer.valueOf(fi.getLine()) == oldLineIndex) {
+                    findInOldIssues = true;
+                    oldIssue = fi;
+                }
+            }
+            for(FindbugsIssue fi : curProjIssues) {
+                if(fileName.endsWith(fi.getComponent()) && Integer.valueOf(fi.getLine()) == newLineIndex) {
+                    findInNewIssues = true;
+                    newIssue = fi;
+                }
+            }
+            if(findInOldIssues == true && findInNewIssues == true) {
+                if(oldIssue.getMessage().equals(newIssue.getMessage())) {
+                    System.out.println("***************************************");
+                    System.out.println("* 延续的缺陷：");
+                    System.out.println("* " + newIssue.getMessage());
+                    System.out.println("***************************************");
+                } else {
+                    System.out.println("***************************************");
+                    System.out.println("* 原来的缺陷：");
+                    System.out.println("* " + oldIssue.getMessage());
+                    System.out.println("* 新出的缺陷：");
+                    System.out.println("* " + newIssue.getMessage());
+                    System.out.println("***************************************");
+                }
+            } else if(findInOldIssues == false && findInNewIssues == true) {
+                System.out.println("***************************************");
+                System.out.println("* 新增的缺陷：");
+                System.out.println("* " + newIssue.getMessage());
+                System.out.println("***************************************");
+            } else if(findInOldIssues == true && findInNewIssues == false) {
+                System.out.println("***************************************");
+                System.out.println("* 修复的缺陷：");
+                System.out.println("* " + oldIssue.getMessage());
+                System.out.println("***************************************");
+            }
+        }
+
         return null;
     }
 
@@ -355,17 +523,17 @@ public class GitUtil {
 //        System.out.println("消失的缺陷" + numOfDelete);
 
 
-        System.out.println("新增的bug缺陷" + bugOfNew);
-        System.out.println("新增的vul缺陷" + vulOfNew + "\n");
+        System.out.println("新增的bug缺陷：" + bugOfNew);
+        System.out.println("新增的vul缺陷：" + vulOfNew + "\n");
 
-        System.out.println("消失的bug缺陷" + bugOfDelete);
-        System.out.println("消失的vul缺陷" + vulOfDelete + "\n");
+        System.out.println("消失的bug缺陷：" + bugOfDelete);
+        System.out.println("消失的vul缺陷：" + vulOfDelete + "\n");
 
-        System.out.println("修复的vul缺陷" + bugOfFix);
-        System.out.println("修复的bug缺陷" + vulOfFix + "\n");
+        System.out.println("修复的vul缺陷：" + bugOfFix);
+        System.out.println("修复的bug缺陷：" + vulOfFix + "\n");
 
-        System.out.println("重现的vul缺陷" + bugOfReopen);
-        System.out.println("重现的bug缺陷" + vulOfReopen + "\n");
+        System.out.println("重现的vul缺陷：" + bugOfReopen);
+        System.out.println("重现的bug缺陷：" + vulOfReopen + "\n");
 
 
         return null;

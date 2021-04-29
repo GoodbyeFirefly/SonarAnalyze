@@ -13,6 +13,46 @@ public class FindbugsIssue {
         this.line = line;
     }
 
+    public String getWarningType() {
+        return warningType;
+    }
+
+    public void setWarningType(String warningType) {
+        this.warningType = warningType;
+    }
+
+    public String getWaringCode() {
+        return waringCode;
+    }
+
+    public void setWaringCode(String waringCode) {
+        this.waringCode = waringCode;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getComponent() {
+        return component;
+    }
+
+    public void setComponent(String component) {
+        this.component = component;
+    }
+
+    public String getLine() {
+        return line;
+    }
+
+    public void setLine(String line) {
+        this.line = line;
+    }
+
     @Override
     public String toString() {
         return "FindbugsIssue{" +
@@ -23,4 +63,6 @@ public class FindbugsIssue {
                 ", line='" + line + '\'' +
                 '}';
     }
+
+
 }
