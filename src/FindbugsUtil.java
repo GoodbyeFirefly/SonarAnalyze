@@ -21,6 +21,10 @@ public class FindbugsUtil implements Serializable{
         this.projectName = projectName;
     }
 
+    /**
+     * 扫描workspace中的项目，在projectFileName-workspace中生成findbugs.html结果报告
+     * @return
+     */
     public String runFindbugsShell () {
         long usedTime = 0;
         // findbugs安装位置
@@ -50,10 +54,6 @@ public class FindbugsUtil implements Serializable{
                 System.out.println(line);
             }
             in.close();
-
-
-//            GitUtil.clearStream(proc.getInputStream());
-//            GitUtil.clearStream(proc.getErrorStream());
 
             int processCode = proc.waitFor();
             if(processCode == 0) {
@@ -119,7 +119,6 @@ public class FindbugsUtil implements Serializable{
                 }
             }
         }
-
         return  issues;
     }
 
@@ -142,8 +141,11 @@ public class FindbugsUtil implements Serializable{
         return sb.toString();
     }
 
-
-
+    /**
+     *
+     * @param num
+     * @return
+     */
     public ArrayList<FindbugsIssue> getProjInfo(int num) {
         String projectPath = path.concat("\\").concat(projectFileName);
         String projectInfoPath = path.concat("\\").concat(projectFileName).concat("-workspace").concat("\\").concat("ProjectInfo");
@@ -164,6 +166,7 @@ public class FindbugsUtil implements Serializable{
                 GitUtil.refreshWorkspaceByCMD(path, projectFileName);
                 GitUtil.runRollBackGitShell(path, projectFileName, num);
 
+                // 这里需要手动将项目导入idea，构建，生成class文件
                 System.out.println("手动更新【" + projectFileName +  "】classes文件夹，更新完成请输入1");
                 Scanner input = new Scanner(System.in);
                 if(input.nextInt() == 1) {

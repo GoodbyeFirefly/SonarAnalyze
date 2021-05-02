@@ -6,6 +6,13 @@ public class GitUtil implements Serializable{
 
     private static Runtime r = Runtime.getRuntime();
 
+    /**
+     * 将workspace中的项目回滚到指定的版本
+     * @param path 项目所在目录
+     * @param projectFileName 项目名称
+     * @param num
+     * @return
+     */
     public static long runRollBackGitShell(String path, String projectFileName, int num) {
         String projectPath = path + "\\" + projectFileName + "-workspace" + "\\" + projectFileName;
 
@@ -40,6 +47,16 @@ public class GitUtil implements Serializable{
         return -1;
     }
 
+    /**
+     * 更新工作空间中代码为当前commit版本的代码，运行代码对比命令，对比历史commit版本代码，并插入缺陷对比信息。
+     * @param lastProjIssues
+     * @param curProjIssues
+     * @param path
+     * @param projectFileName
+     * @param lastCommitNum
+     * @param curCommitNum
+     * @return
+     */
     public static String runSonarDiffGitShell(ArrayList<sonarProjectIssue> lastProjIssues, ArrayList<sonarProjectIssue> curProjIssues, String path, String projectFileName, int lastCommitNum, int curCommitNum) {
         String projectPath = path + "\\" + projectFileName + "-workspace" + "\\" + projectFileName;
         Runtime run = Runtime.getRuntime();
@@ -180,6 +197,11 @@ public class GitUtil implements Serializable{
         return null;
     }
 
+    /**
+     * 通过命令行将源文件夹拷贝到目标文件夹中
+     * @param scrFolder
+     * @param desFolder
+     */
     public static void copyFolderByCMD(String scrFolder, String desFolder) {
         Runtime run = Runtime.getRuntime();
         try {
@@ -192,6 +214,10 @@ public class GitUtil implements Serializable{
         }
     }
 
+    /**
+     * 删除指定文件夹中所有文件
+     * @param file
+     */
     public static void deleteFile(File file) {
         //判断文件不为null或文件目录存在
         if (file == null || !file.exists()){
@@ -214,6 +240,11 @@ public class GitUtil implements Serializable{
         file.delete();
     }
 
+    /**
+     * 更新工作空间，将path中的项目拷贝至工作空间内对应的项目文件夹中
+     * @param path
+     * @param projectFileName
+     */
     public static void refreshWorkspaceByCMD(String path, String projectFileName) {
         try {
             File f = new File(path + "\\" + projectFileName + "-workspace" + "\\" + projectFileName);
@@ -242,6 +273,10 @@ public class GitUtil implements Serializable{
         }
     }
 
+    /**
+     * 清空流中的内容
+     * @param stream
+     */
     public static void clearStream(InputStream stream) {
         String line = null;
 

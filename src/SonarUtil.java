@@ -579,7 +579,11 @@ public class SonarUtil {
         return true;
     }
 
-
+    /**
+     * 根据commit次数确定需要获得的扫描结果
+     * @param num
+     * @return
+     */
     public ProjectInfo getProjInfo(int num) {
         String projectPath = path.concat("\\").concat(projectFileName);
         String projectInfoPath = path.concat("\\").concat(projectFileName).concat("-workspace").concat("\\").concat("ProjectInfo");
