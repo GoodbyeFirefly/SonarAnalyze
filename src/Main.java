@@ -63,25 +63,29 @@ public class Main {
 //        System.out.println("输入commit数目：");
 //        numOfCommit = input.nextInt();
 
-        SonarUtil sonar = new SonarUtil(numOfCommit, path, projectFileName, projectName, projectVersion, sources, binaries);
+//        SonarUtil sonar = new SonarUtil(numOfCommit, path, projectFileName, projectName, projectVersion, sources, binaries);
 
+        FindbugsUtil findbugs = new FindbugsUtil(path, projectFileName, projectName);
+//        findbugs.getProjInfo(2);
+        GitUtil.runFindbugsDiffGitShell(findbugs.getProjInfo(1), findbugs.getProjInfo(0), path, projectFileName, 1,0);
+//        System.out.println(findbugs.getFindbugsIssues());
         // 创建配置文件
 //        sonar.createConfFile();
-        File file = new File("D:\\TestProjects\\TestForFindbugs-workspace\\TestForFindbugs");
+//        File file = new File("D:\\TestProjects\\TestForFindbugs-workspace\\TestForFindbugs");
 //        GitUtil.compailJavaToClass(file, "D:\\TestProjects\\TestForFindbugs\\classes");
 
-        ArrayList<FindbugsIssue> issues = FindbugsUtil.getFindbugsIssues("D:\\TestProjects\\spring-boot-demo-workspace\\findbugs.html");
+//        ArrayList<FindbugsIssue> issues = FindbugsUtil.getFindbugsIssues("D:\\TestProjects\\spring-boot-demo-workspace\\findbugs.html");
 
-        System.out.println(issues.size());
+//        System.out.println(issues.size());
 //        FindbugsUtil.runFindbugsShell(path, projectFileName);
 
 
-        ProjectInfo pi1 = sonar.getProjInfo(1);
-        ProjectInfo pi2 = sonar.getProjInfo(0);
+//        ProjectInfo pi1 = sonar.getProjInfo(1);
+//        ProjectInfo pi2 = sonar.getProjInfo(0);
 
 //        sonar.showMeasures(pi2.getMeasures());
 
-        GitUtil.runSonarDiffGitShell(pi1.getIssues(), pi2.getIssues(), projectPath, 1);
+//        GitUtil.runSonarDiffGitShell(pi1.getIssues(), pi2.getIssues(), projectPath, 1);
 
 //        GitUtil.getAllSonarCompareIssuesInfo(pi1.getIssues(), pi2.getIssues());
 

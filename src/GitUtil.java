@@ -2,11 +2,13 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.regex.*;
 
-public class GitUtil {
+public class GitUtil implements Serializable{
 
     private static Runtime r = Runtime.getRuntime();
 
-    public static long runRollBackGitShell(String projectPath, int num) {
+    public static long runRollBackGitShell(String path, String projectFileName, int num) {
+        String projectPath = path + "\\" + projectFileName + "-workspace" + "\\" + projectFileName;
+
         if(num == 0) {
             return 0;
         }
@@ -38,10 +40,13 @@ public class GitUtil {
         return -1;
     }
 
-    public static String runSonarDiffGitShell(ArrayList<sonarProjectIssue> lastProjIssues, ArrayList<sonarProjectIssue> curProjIssues, String projectPath, int num) {
+    public static String runSonarDiffGitShell(ArrayList<sonarProjectIssue> lastProjIssues, ArrayList<sonarProjectIssue> curProjIssues, String path, String projectFileName, int lastCommitNum, int curCommitNum) {
+        String projectPath = path + "\\" + projectFileName + "-workspace" + "\\" + projectFileName;
         Runtime run = Runtime.getRuntime();
         try {
-            Process process = run.exec("cmd.exe /c cd " + projectPath + "&& git diff HEAD~" + num);
+            refreshWorkspaceByCMD(path, projectFileName);
+            runRollBackGitShell(path, projectFileName, curCommitNum);
+            Process process = run.exec("cmd.exe /c cd " + projectPath + "&& git diff HEAD~" + (lastCommitNum - curCommitNum));
             InputStream in = process.getInputStream();
             InputStreamReader reader = new InputStreamReader(in);
             BufferedReader br = new BufferedReader(reader);
@@ -101,10 +106,23 @@ public class GitUtil {
         return null;
     }
 
-    public static String runFindbugsDiffGitShell(ArrayList<FindbugsIssue> lastProjIssues, ArrayList<FindbugsIssue> curProjIssues, String projectPath, int num) {
+    /**
+     * 更新工作空间中代码为当前commit版本的代码，运行代码对比命令，对比历史commit版本代码，并插入缺陷对比信息。
+     * @param lastProjIssues 历史版本的缺陷信息
+     * @param curProjIssues 当前版本的缺陷信息
+     * @param path 项目所在目录
+     * @param projectFileName 项目名称
+     * @param lastCommitNum 历史commit编号
+     * @param curCommitNum 当前commit编号
+     * @return
+     */
+    public static String runFindbugsDiffGitShell(ArrayList<FindbugsIssue> lastProjIssues, ArrayList<FindbugsIssue> curProjIssues, String path, String projectFileName, int lastCommitNum, int curCommitNum) {
+        String projectPath = path + "\\" + projectFileName + "-workspace" + "\\" + projectFileName;
         Runtime run = Runtime.getRuntime();
         try {
-            Process process = run.exec("cmd.exe /c cd " + projectPath + "&& git diff HEAD~" + num);
+            refreshWorkspaceByCMD(path, projectFileName);
+            runRollBackGitShell(path, projectFileName, curCommitNum);
+            Process process = run.exec("cmd.exe /c cd " + projectPath + "&& git diff HEAD~" + (lastCommitNum - curCommitNum));
             InputStream in = process.getInputStream();
             InputStreamReader reader = new InputStreamReader(in);
             BufferedReader br = new BufferedReader(reader);

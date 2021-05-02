@@ -1,4 +1,6 @@
-public class FindbugsIssue {
+import java.io.Serializable;
+
+public class FindbugsIssue implements Serializable {
     String warningType;// 警告类型
     String waringCode;// 警告码
     String message;// 报错信息

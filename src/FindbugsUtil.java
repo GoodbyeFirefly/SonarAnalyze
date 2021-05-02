@@ -1,82 +1,85 @@
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Scanner;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 
-public class FindbugsUtil {
+public class FindbugsUtil implements Serializable{
+    String path;
+    String projectFileName;
+    String projectName;
 
-//    public static String runFindbugsShell (String projectPath, String projectFileName) {
-//        long usedTime = 0;
-//        // findbugs安装位置
-//        String findbugsPath = "C:\\Progra~1\\findbugs-3.0.1\\bin";
-//        // 生成html报告的位置
-//        String targetFile = projectPath + "\\" + projectFileName + "-workspace" + "\\findbugs.html";
-//        // 原项目中所有java文件编译为class文件后存放的位置
-//        String sourceClassesPath = projectPath + "\\" + projectFileName + "-workspace" + "\\classes";
-//        System.out.println("sourceClassesPath: " + sourceClassesPath);
-//        // 确保存放class的文件夹classes存在
-//        File file = new File(sourceClassesPath);
-//        if(!file.exists()) {
-//            file.mkdir();
-//        }
-//        file = new File(projectPath + "\\" + projectFileName + "-workspace\\" + projectFileName);
-//        GitUtil.compailJavaToClass(file);
-//        System.out.println("文件编译完成");
-//
-//        String getHtmlCmd = ".\\findbugs -textui -html -low -outputFile " + targetFile + " " + sourceClassesPath;
-//        // 这里用cmd.exe会提示文件名、卷名错误
-//        String cmd = "powershell.exe /c cd " + findbugsPath + " ; " + getHtmlCmd;
-////        String cmd = getHtmlCmd;
-//
-//        try {
-//            long startTime =  System.currentTimeMillis();
-//            System.out.println("开始执行命令: .\\findbugs -textui -html -low -outputFile PathA PathB");
-//            System.out.println("cmd: " + cmd);
-//
-////            Runtime.getRuntime().exec("cmd.exe /c cd " + findbugsPath).waitFor();
-//            Process proc = Runtime.getRuntime().exec(cmd);
-//
-//            BufferedReader in = new BufferedReader(new InputStreamReader(proc.getErrorStream(), Charset.forName("gb2312")));
-//            String line = null;
-//            while ((line = in.readLine()) != null) {
-//                System.out.println(line);
-//            }
-//            in.close();
-//
-//
-////            GitUtil.clearStream(proc.getInputStream());
-////            GitUtil.clearStream(proc.getErrorStream());
-//
-//            int processCode = proc.waitFor();
-//            if(processCode == 0) {
-//                System.out.println("命令执行完成");
-//                long endTime =  System.currentTimeMillis();
-//                // 获取扫描时间
-//                usedTime = (endTime - startTime) ;
-////                System.out.println("扫描用时" + usedTime + "s");
-//                System.out.println("-----------------------------");
-//            } else {
-//                System.out.println("Error in FindbugsUtil[113]");
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return (usedTime) + "ms";
-//    }
+    public FindbugsUtil(String path, String projectFileName, String projectName) {
+        this.path = path;
+        this.projectFileName = projectFileName;
+        this.projectName = projectName;
+    }
+
+    public String runFindbugsShell () {
+        long usedTime = 0;
+        // findbugs安装位置
+        String findbugsPath = "C:\\Progra~1\\findbugs-3.0.1\\bin";
+        // 生成html报告的位置
+        String targetFile = path + "\\" + projectFileName + "-workspace" + "\\findbugs.html";
+        // 原项目中所有java文件编译为class文件后存放的位置
+        String sourceClassesPath = path + "\\" + projectFileName + "-workspace";
+        System.out.println("sourceClassesPath: " + sourceClassesPath);
+
+        String getHtmlCmd = ".\\findbugs -textui -html -low -outputFile " + targetFile + " " + sourceClassesPath + "\\" + projectFileName;
+        // 这里用cmd.exe会提示文件名、卷名错误
+        String cmd = "powershell.exe /c cd " + findbugsPath + " ; " + getHtmlCmd;
+//        String cmd = getHtmlCmd;
+
+        try {
+            long startTime =  System.currentTimeMillis();
+            System.out.println("开始执行命令: .\\findbugs -textui -html -low -outputFile PathA PathB");
+            System.out.println("cmd: " + cmd);
+
+//            Runtime.getRuntime().exec("cmd.exe /c cd " + findbugsPath).waitFor();
+            Process proc = Runtime.getRuntime().exec(cmd);
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(proc.getErrorStream(), Charset.forName("gb2312")));
+            String line = null;
+            while ((line = in.readLine()) != null) {
+                System.out.println(line);
+            }
+            in.close();
+
+
+//            GitUtil.clearStream(proc.getInputStream());
+//            GitUtil.clearStream(proc.getErrorStream());
+
+            int processCode = proc.waitFor();
+            if(processCode == 0) {
+                System.out.println("命令执行完成");
+                long endTime =  System.currentTimeMillis();
+                // 获取扫描时间
+                usedTime = (endTime - startTime) ;
+//                System.out.println("扫描用时" + usedTime + "s");
+                System.out.println("-----------------------------");
+            } else {
+                System.out.println("Error in FindbugsUtil[113]");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return (usedTime) + "ms";
+    }
 
     /**
      * 根据html文档进行分析，获得所有缺陷的详细信息
-     * @param filename
      * @return
      */
-    public static ArrayList<FindbugsIssue> getFindbugsIssues(String filename) {
+    public ArrayList<FindbugsIssue> getFindbugsIssues() {
         ArrayList<FindbugsIssue> issues = new ArrayList<>();
         // 获取html的document对象
-        Document doc = Jsoup.parse(readHtml(filename));
+        Document doc = Jsoup.parse(readHtml());
         // 获取所有h2标签中的元素
         Elements elements = doc.select("h2");
         // 遍历所有h2标签
@@ -106,7 +109,10 @@ public class FindbugsUtil {
                     int componentIndex = 8;// 文件所在位置
                     int lineIndex = tem.length - 1;// 行数所在位置
                     String component = tem[componentIndex].replace(".", "/").concat(".java");
-                    String line = tem[lineIndex].split("-")[0];
+//                    System.out.println(tem[lineIndex]);
+                    // 目前行数默认为范围中的第一行，如[7-9]默认为7
+                    String line = tem[lineIndex].split("-|]")[0];
+//                    System.out.println(line);
 
                     issues.add(new FindbugsIssue(type, waringCode, message, component, line));
 
@@ -119,12 +125,12 @@ public class FindbugsUtil {
 
     /**
      * 通过文件名获取html的字符流形式
-     * @param filename
      * @return
      */
-    public static String readHtml(String filename) {
+    public String readHtml() {
         StringBuffer sb = new StringBuffer();
-        try(FileInputStream fis = new FileInputStream(filename)) {
+        String htmlPath = path + "\\" + projectFileName + "-workspace" + "\\findbugs.html";
+        try(FileInputStream fis = new FileInputStream(htmlPath)) {
             byte[] bytes = new byte[1024];
             while (fis.read(bytes) != -1) {
                 sb.append(new String(bytes));
@@ -134,6 +140,48 @@ public class FindbugsUtil {
             e.printStackTrace();
         }
         return sb.toString();
+    }
+
+
+
+    public ArrayList<FindbugsIssue> getProjInfo(int num) {
+        String projectPath = path.concat("\\").concat(projectFileName);
+        String projectInfoPath = path.concat("\\").concat(projectFileName).concat("-workspace").concat("\\").concat("ProjectInfo");
+        String newProjectPath = path + "\\" + projectFileName + "-workspace" + "\\" + projectFileName;
+
+        ArrayList<FindbugsIssue> issues = new ArrayList<>();
+
+
+        try {
+            File file = new File(projectInfoPath, "findbugs_" + num);
+            if(file.exists()) {
+                // 通过本地获取扫描信息（issues和measures）
+                ObjectInputStream ois = new ObjectInputStream(new FileInputStream(projectInfoPath.concat("\\").concat("findbugs_" + num)));
+                issues = (ArrayList<FindbugsIssue>)ois.readObject();
+                ois.close();
+
+            } else {
+                GitUtil.refreshWorkspaceByCMD(path, projectFileName);
+                GitUtil.runRollBackGitShell(path, projectFileName, num);
+
+                System.out.println("手动更新【" + projectFileName +  "】classes文件夹，更新完成请输入1");
+                Scanner input = new Scanner(System.in);
+                if(input.nextInt() == 1) {
+                    runFindbugsShell();
+                    issues = getFindbugsIssues();
+
+                    ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(projectInfoPath.concat("\\").concat("findbugs_" + num)));
+                    oos.writeObject(issues);
+                    oos.close();
+                }
+
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return issues;
     }
 
 }

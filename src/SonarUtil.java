@@ -7,6 +7,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Scanner;
 
 public class SonarUtil {
     int numOfCommit;
@@ -597,7 +598,8 @@ public class SonarUtil {
 
             } else {
                 GitUtil.refreshWorkspaceByCMD(path, projectFileName);
-                GitUtil.runRollBackGitShell(newProjectPath, num);
+                GitUtil.runRollBackGitShell(path, projectFileName, num);
+
                 // 通过api获取扫描信息（issues和measures）
                 String time = runSonarShell(newProjectPath);
                 HashMap<String, String> measures = combineSonarMeasures();
